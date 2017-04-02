@@ -1,6 +1,4 @@
 ﻿using UnityEngine;
-using System.Diagnostics;
-using System.IO;
 
 namespace FFmpegOut
 {
@@ -11,19 +9,17 @@ namespace FFmpegOut
         #region Editable properties
 
         [SerializeField] float _recordLength = 5;
+        [SerializeField] int _frameRate = 30;
 
         #endregion
 
         #region Private members
 
         [SerializeField, HideInInspector] Shader _shader;
-
-        float _elapsed;
-        bool _recording;
-
         Material _material;
-        Process _subprocess;
-        BinaryWriter _stdin;
+
+        FFmpegPipe _pipe;
+        float _elapsed;
 
         #endregion
 
@@ -36,40 +32,49 @@ namespace FFmpegOut
 
         void Start()
         {
-            _recording = true;
             _material = new Material(_shader);
+            Time.captureFramerate = _frameRate;
         }
 
         void OnDisable()
         {
-            if (_recording)
-            {
-                CloseSubprocess();
-                _recording = false;
-            }
+            if (_pipe != null) ClosePipe();
+        }
+
+        void OnDestroy()
+        {
+            if (_pipe != null) ClosePipe();
         }
 
         void Update()
         {
-            if (_recording)
+            _elapsed += Time.deltaTime;
+
+            if (_elapsed < _recordLength)
             {
-                _elapsed += Time.deltaTime;
-                if (_elapsed > _recordLength)
-                {
-                    CloseSubprocess();
-                    _recording = false;
-                }
+                if (_pipe == null) OpenPipe();
+            }
+            else
+            {
+                if (_pipe != null) ClosePipe();
             }
         }
 
         void OnRenderImage(RenderTexture source, RenderTexture destination)
         {
-            if (_recording)
+            if (_pipe != null)
             {
-                var temp = RenderTexture.GetTemporary(source.width, source.height);
-                Graphics.Blit(source, temp, _material, 0);
-                Dump(temp);
-                RenderTexture.ReleaseTemporary(temp);
+                var tempRT = RenderTexture.GetTemporary(source.width, source.height);
+                Graphics.Blit(source, tempRT, _material, 0);
+
+                var tempTex = new Texture2D(source.width, source.height, TextureFormat.RGB24, false);
+                tempTex.ReadPixels(new Rect(0, 0, source.width, source.height), 0, 0, false);
+                tempTex.Apply();
+
+                _pipe.Write(tempTex.GetRawTextureData());
+
+                Destroy(tempTex);
+                RenderTexture.ReleaseTemporary(tempRT);
             }
 
             Graphics.Blit(source, destination);
@@ -79,58 +84,23 @@ namespace FFmpegOut
 
         #region Private methods
 
-        void Dump(RenderTexture rt)
+        void OpenPipe()
         {
-            if (_subprocess == null) OpenSubprocess(name, rt);
+            var camera = GetComponent<Camera>();
+            var width = camera.pixelWidth;
+            var height = camera.pixelHeight;
 
-            var temp = new Texture2D(rt.width, rt.height, TextureFormat.RGB24, false);
-            temp.ReadPixels(new Rect(0, 0, rt.width, rt.height), 0, 0, false);
-            temp.Apply();
-            _stdin.Write(temp.GetRawTextureData());
-            DestroyImmediate(temp);
+            _pipe = new FFmpegPipe(name, width, height, _frameRate);
         }
 
-        void OpenSubprocess(string name, RenderTexture rt)
+        void ClosePipe()
         {
-            var exePath = Application.streamingAssetsPath + "/FFmpegOut/ffmpeg.exe";
-            var outPath = name.Replace(" ", "_") + ".mov";
-
-            var opt = "-y -f rawvideo -vcodec rawvideo -pixel_format rgb24";
-            opt += " -video_size " + rt.width + "x" + rt.height;
-            opt += " -framerate 30";
-            opt += " -i - -c:v prores_ks -pix_fmt yuv422p10le ";
-            opt += outPath;
-
-            var info = new ProcessStartInfo(exePath, opt);
-            info.UseShellExecute = false;
-            info.CreateNoWindow = true;
-            info.RedirectStandardInput = true;
-            info.RedirectStandardOutput = true;
-            info.RedirectStandardError = true;
-
-            _subprocess = Process.Start(info);
-            _stdin = new BinaryWriter(_subprocess.StandardInput.BaseStream);
-
-            UnityEngine.Debug.Log("Capture started.\n" + exePath + " " + opt);
-        }
-
-        void CloseSubprocess()
-        {
-            _subprocess.StandardInput.Close();
-            _subprocess.WaitForExit();
-
-            var outputReader = _subprocess.StandardError;
-            var output = outputReader.ReadToEnd();
-
-            _subprocess.Close();
-
-            outputReader.Close();
-            outputReader.Dispose();
-
-            _subprocess = null;
-            _stdin = null;
-
-            UnityEngine.Debug.Log("Capture completed.\n" + output);
+            if (_pipe != null)
+            {
+                _pipe.Close();
+                Debug.Log(_pipe.Error);
+                _pipe = null;
+            }
         }
 
         #endregion
