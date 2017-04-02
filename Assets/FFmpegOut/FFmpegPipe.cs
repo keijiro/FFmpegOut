@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.IO;
+using System;
 
 namespace FFmpegOut
 {
@@ -9,17 +10,20 @@ namespace FFmpegOut
         Process _subprocess;
         BinaryWriter _stdin;
 
+        public string Filename { get; private set; }
         public string Error { get; private set; }
 
         public FFmpegPipe(string name, int width, int height, int framerate)
         {
-            var outPath = name.Replace(" ", "_") + ".mov";
+            name += DateTime.Now.ToString(" yyyy MMdd HHmmss");
+            Filename = name.Replace(" ", "_") + ".mov";
 
             var opt = "-y -f rawvideo -vcodec rawvideo -pixel_format rgb24";
             opt += " -video_size " + width + "x" + height;
             opt += " -framerate " + framerate;
-            opt += " -i - -c:v prores_ks -pix_fmt yuv422p10le ";
-            opt += outPath;
+            opt += " -loglevel warning";
+            opt += " -i - -c:v prores_ks -pix_fmt yuv422p10le";
+            opt += " " + Filename;
 
             var info = new ProcessStartInfo(FFmpegConfig.BinaryPath, opt);
             info.UseShellExecute = false;

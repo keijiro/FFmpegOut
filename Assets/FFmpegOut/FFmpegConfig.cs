@@ -9,5 +9,9 @@ namespace FFmpegOut
                 return Application.streamingAssetsPath + "/FFmpegOut/ffmpeg.exe";
             }
         }
+
+        public static bool CheckAvailable {
+            get { return System.IO.File.Exists(BinaryPath); }
+        }
     }
 }

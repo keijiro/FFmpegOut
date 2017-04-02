@@ -36,6 +36,19 @@ namespace FFmpegOut
             Time.captureFramerate = _frameRate;
         }
 
+        void OnEnable()
+        {
+            if (!FFmpegConfig.CheckAvailable)
+            {
+                Debug.LogError(
+                    "ffmpeg.exe is missing. " +
+                    "Please refer to the installation instruction. " +
+                    "https://github.com/keijiro/FFmpegOut"
+                );
+                enabled = false;
+            }
+        }
+
         void OnDisable()
         {
             if (_pipe != null) ClosePipe();
@@ -91,14 +104,26 @@ namespace FFmpegOut
             var height = camera.pixelHeight;
 
             _pipe = new FFmpegPipe(name, width, height, _frameRate);
+
+            Debug.Log("Capture started (" + _pipe.Filename + ")");
         }
 
         void ClosePipe()
         {
             if (_pipe != null)
             {
+                Debug.Log("Capture ended (" + _pipe.Filename + ")");
+
                 _pipe.Close();
-                Debug.Log(_pipe.Error);
+
+                if (!string.IsNullOrEmpty(_pipe.Error))
+                {
+                    Debug.LogWarning(
+                        "ffmpeg returned with a warning or an error message. " +
+                        "See the following lines for details:\n" + _pipe.Error
+                    );
+                }
+
                 _pipe = null;
             }
         }
