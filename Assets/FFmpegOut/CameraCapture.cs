@@ -8,8 +8,23 @@ namespace FFmpegOut
     {
         #region Editable properties
 
-        [SerializeField] float _recordLength = 5;
+        [SerializeField] bool _setResolution = false;
+        [SerializeField] int _width = 1280;
+        [SerializeField] int _height = 720;
         [SerializeField] int _frameRate = 30;
+        [SerializeField] float _recordLength = 5;
+
+        #endregion
+
+        #region Public properties
+
+        public bool isCapturing {
+            get { return _pipe != null; }
+        }
+
+        public Texture previewTexture {
+            get { return _tempTarget; }
+        }
 
         #endregion
 
@@ -19,6 +34,7 @@ namespace FFmpegOut
         Material _material;
 
         FFmpegPipe _pipe;
+        RenderTexture _tempTarget;
         float _elapsed;
 
         #endregion
@@ -28,12 +44,6 @@ namespace FFmpegOut
         void OnValidate()
         {
             _recordLength = Mathf.Max(_recordLength, 0.01f);
-        }
-
-        void Start()
-        {
-            _material = new Material(_shader);
-            Time.captureFramerate = _frameRate;
         }
 
         void OnEnable()
@@ -57,6 +67,11 @@ namespace FFmpegOut
         void OnDestroy()
         {
             if (_pipe != null) ClosePipe();
+        }
+
+        void Start()
+        {
+            _material = new Material(_shader);
         }
 
         void Update()
@@ -99,17 +114,57 @@ namespace FFmpegOut
 
         void OpenPipe()
         {
-            var camera = GetComponent<Camera>();
-            var width = camera.pixelWidth;
-            var height = camera.pixelHeight;
+            if (_pipe != null) return;
 
+            var camera = GetComponent<Camera>();
+            var width = _width;
+            var height = _height;
+
+            // Apply the creen resolution settings.
+            if (_setResolution)
+            {
+                _tempTarget = RenderTexture.GetTemporary(width, height);
+                camera.targetTexture = _tempTarget;
+            }
+            else
+            {
+                width = camera.pixelWidth;
+                height = camera.pixelHeight;
+            }
+
+            // Open an output stream.
             _pipe = new FFmpegPipe(name, width, height, _frameRate);
+
+            // Change the application frame rate.
+            if (Time.captureFramerate == 0)
+            {
+                Time.captureFramerate = _frameRate;
+            }
+            else if (Time.captureFramerate != _frameRate)
+            {
+                Debug.LogWarning(
+                    "Frame rate mismatch; the application frame rate has been " +
+                    "changed with a different value. Make sure using the same " +
+                    "frame rate when capturing multiple cameras."
+                );
+            }
 
             Debug.Log("Capture started (" + _pipe.Filename + ")");
         }
 
         void ClosePipe()
         {
+            var camera = GetComponent<Camera>();
+
+            // Release the temporary render target.
+            if (_tempTarget != null && _tempTarget == camera.targetTexture)
+            {
+                camera.targetTexture = null;
+                RenderTexture.ReleaseTemporary(_tempTarget);
+                _tempTarget = null;
+            }
+
+            // Close the output stream.
             if (_pipe != null)
             {
                 Debug.Log("Capture ended (" + _pipe.Filename + ")");
