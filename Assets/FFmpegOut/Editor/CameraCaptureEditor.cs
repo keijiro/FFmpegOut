@@ -22,47 +22,25 @@ namespace FFmpegOut
             _recordLength = serializedObject.FindProperty("_recordLength");
         }
 
-        public override bool RequiresConstantRepaint()
-        {
-            return ((CameraCapture)target).isCapturing;
-        }
-
         public override void OnInspectorGUI()
         {
-            var capture = (CameraCapture)target;
+            // Show the editor controls.
+            serializedObject.Update();
 
-            if (capture.isCapturing)
+            EditorGUILayout.PropertyField(_setResolution);
+
+            if (_setResolution.hasMultipleDifferentValues || _setResolution.boolValue)
             {
-                // Display the preview texture.
-                var preview = capture.previewTexture;
-                if (preview != null)
-                {
-                    var width = EditorGUIUtility.currentViewWidth;
-                    var height = width * preview.height / preview.width;
-                    var rect = EditorGUILayout.GetControlRect(false, height);
-                    EditorGUI.DrawPreviewTexture(rect, preview);
-                }
+                EditorGUI.indentLevel++;
+                EditorGUILayout.PropertyField(_width);
+                EditorGUILayout.PropertyField(_height);
+                EditorGUI.indentLevel--;
             }
-            else
-            {
-                // Show the editor controls.
-                serializedObject.Update();
 
-                EditorGUILayout.PropertyField(_setResolution);
+            EditorGUILayout.PropertyField(_frameRate);
+            EditorGUILayout.PropertyField(_recordLength);
 
-                if (_setResolution.hasMultipleDifferentValues || _setResolution.boolValue)
-                {
-                    EditorGUI.indentLevel++;
-                    EditorGUILayout.PropertyField(_width);
-                    EditorGUILayout.PropertyField(_height);
-                    EditorGUI.indentLevel--;
-                }
-
-                EditorGUILayout.PropertyField(_frameRate);
-                EditorGUILayout.PropertyField(_recordLength);
-
-                serializedObject.ApplyModifiedProperties();
-            }
+            serializedObject.ApplyModifiedProperties();
         }
     }
 }

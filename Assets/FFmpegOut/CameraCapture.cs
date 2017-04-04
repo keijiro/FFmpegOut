@@ -16,26 +16,16 @@ namespace FFmpegOut
 
         #endregion
 
-        #region Public properties
-
-        public bool isCapturing {
-            get { return _pipe != null; }
-        }
-
-        public Texture previewTexture {
-            get { return _tempTarget; }
-        }
-
-        #endregion
-
         #region Private members
 
         [SerializeField, HideInInspector] Shader _shader;
         Material _material;
 
         FFmpegPipe _pipe;
-        RenderTexture _tempTarget;
         float _elapsed;
+
+        RenderTexture _tempTarget;
+        GameObject _tempBlitter;
 
         #endregion
 
@@ -120,11 +110,12 @@ namespace FFmpegOut
             var width = _width;
             var height = _height;
 
-            // Apply the creen resolution settings.
+            // Apply the screen resolution settings.
             if (_setResolution)
             {
                 _tempTarget = RenderTexture.GetTemporary(width, height);
                 camera.targetTexture = _tempTarget;
+                _tempBlitter = Blitter.CreateGameObject(camera);
             }
             else
             {
@@ -155,6 +146,13 @@ namespace FFmpegOut
         void ClosePipe()
         {
             var camera = GetComponent<Camera>();
+
+            // Destroy the blitter object.
+            if (_tempBlitter != null)
+            {
+                Destroy(_tempBlitter);
+                _tempBlitter = null;
+            }
 
             // Release the temporary render target.
             if (_tempTarget != null && _tempTarget == camera.targetTexture)
