@@ -4,7 +4,7 @@ namespace FFmpegOut
 {
     // Simply blit a given texture to the screen.
     [RequireComponent(typeof(Camera))]
-    public class Blitter : MonoBehaviour
+    internal class Blitter : MonoBehaviour
     {
         #region Static functions
 
