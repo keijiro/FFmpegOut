@@ -7,22 +7,26 @@ namespace FFmpegOut
     // A stream pipe class that invokes ffmpeg and connect to it.
     class FFmpegPipe
     {
-        Process _subprocess;
-        BinaryWriter _stdin;
+        #region Public properties
+
+        public enum Codec { ProRes, H264, VP8 }
 
         public string Filename { get; private set; }
         public string Error { get; private set; }
 
-        public FFmpegPipe(string name, int width, int height, int framerate)
+        #endregion
+
+        #region Public methods
+
+        public FFmpegPipe(string name, int width, int height, int framerate, Codec codec)
         {
             name += DateTime.Now.ToString(" yyyy MMdd HHmmss");
-            Filename = name.Replace(" ", "_") + ".mov";
+            Filename = name.Replace(" ", "_") + GetSuffix(codec);
 
             var opt = "-y -f rawvideo -vcodec rawvideo -pixel_format rgb24";
             opt += " -video_size " + width + "x" + height;
             opt += " -framerate " + framerate;
-            opt += " -loglevel warning";
-            opt += " -i - -c:v prores_ks -pix_fmt yuv422p10le";
+            opt += " -loglevel warning -i - " + GetOptions(codec);
             opt += " " + Filename;
 
             var info = new ProcessStartInfo(FFmpegConfig.BinaryPath, opt);
@@ -63,5 +67,36 @@ namespace FFmpegOut
             _subprocess = null;
             _stdin = null;
         }
+
+        #endregion
+
+        #region Private members
+
+        Process _subprocess;
+        BinaryWriter _stdin;
+
+        static string [] _suffixes = {
+            ".mov",
+            ".mp4",
+            ".webm"
+        };
+
+        static string [] _options = {
+            "-c:v prores_ks -pix_fmt yuv422p10le",
+            "-pix_fmt yuv420p",
+            "-c:v libvpx"
+        };
+
+        static string GetSuffix(Codec codec)
+        {
+            return _suffixes[(int)codec];
+        }
+
+        static string GetOptions(Codec codec)
+        {
+            return _options[(int)codec];
+        }
+
+        #endregion
     }
 }

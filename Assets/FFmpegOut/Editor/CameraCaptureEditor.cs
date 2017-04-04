@@ -11,7 +11,16 @@ namespace FFmpegOut
         SerializedProperty _width;
         SerializedProperty _height;
         SerializedProperty _frameRate;
+        SerializedProperty _codec;
         SerializedProperty _recordLength;
+
+        static GUIContent [] _codecLabels = {
+            new GUIContent("ProRes (QuickTime)"),
+            new GUIContent("H.264 (MP4)"),
+            new GUIContent("VP8 (WebM)")
+        };
+
+        static int [] _codecOptions = { 0, 1, 2 };
 
         void OnEnable()
         {
@@ -19,6 +28,7 @@ namespace FFmpegOut
             _width = serializedObject.FindProperty("_width");
             _height = serializedObject.FindProperty("_height");
             _frameRate = serializedObject.FindProperty("_frameRate");
+            _codec = serializedObject.FindProperty("_codec");
             _recordLength = serializedObject.FindProperty("_recordLength");
         }
 
@@ -38,6 +48,7 @@ namespace FFmpegOut
             }
 
             EditorGUILayout.PropertyField(_frameRate);
+            EditorGUILayout.IntPopup(_codec, _codecLabels, _codecOptions);
             EditorGUILayout.PropertyField(_recordLength);
 
             serializedObject.ApplyModifiedProperties();

@@ -12,6 +12,7 @@ namespace FFmpegOut
         [SerializeField] int _width = 1280;
         [SerializeField] int _height = 720;
         [SerializeField] int _frameRate = 30;
+        [SerializeField] FFmpegPipe.Codec _codec;
         [SerializeField] float _recordLength = 5;
 
         #endregion
@@ -124,7 +125,7 @@ namespace FFmpegOut
             }
 
             // Open an output stream.
-            _pipe = new FFmpegPipe(name, width, height, _frameRate);
+            _pipe = new FFmpegPipe(name, width, height, _frameRate, _codec);
 
             // Change the application frame rate.
             if (Time.captureFramerate == 0)
