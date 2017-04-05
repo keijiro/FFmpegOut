@@ -6,10 +6,11 @@ Unity with using FFmpeg as a video encoder.
 
 Currently FFmpegOut only supports Windows.
 
-The video format is fixed as follows:
+At the moment, the following video formats are supported:
 
-- Container: Quicktime (mov)
-- Codec: ProRes 422 (normal)
+- ProRes 422 with the QuickTime container
+- H.264 with the MP4 container
+- VP8 with the WebM container
 
 Installation
 ------------
