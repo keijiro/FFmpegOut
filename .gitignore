@@ -1,4 +1,6 @@
-ffmpeg.exe
+/Assets/StreamingAssets/FFmpegOut/Windows/ffmpeg.exe
+/Assets/StreamingAssets/FFmpegOut/OSX/ffmpeg
+/Assets/StreamingAssets/FFmpegOut/Linux/ffmpeg
 
 /[Ll]ibrary/
 /[Tt]emp/
