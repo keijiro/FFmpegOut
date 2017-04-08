@@ -24,11 +24,12 @@ Installation
 ------------
 
 The binary executable files of FFmpeg is not included in this repository nor
-the package because it's too large to be included. It has to be added manually
-after installation of FFmpegOut.
+the package because they're too large to be included. They have to be added
+manually after an installation of FFmpegOut.
 
-Any recent versions of FFmpeg would work, but I recommend using [KeatsPeeks]'
-static-linked executables because I'm using them for testing.
+Any recent versions of FFmpeg would work, but it's recommended to use
+[KeatsPeeks]' static-linked executables because they're used for development
+and testing.
 
 - Windows:
   https://github.com/KeatsPeeks/ffmpeg-static/blob/master/bin/win32/x64/ffmpeg.exe
@@ -39,7 +40,7 @@ static-linked executables because I'm using them for testing.
 - Linux:
   https://github.com/KeatsPeeks/ffmpeg-static/tree/master/bin/linux/x64/ffmpeg
 
-Download these files and copy it into
+Download these files and copy them into
 `Assets/StreamingAssets/FFmpegOut/(platform name)/`.
 
 ### Additional note on macOS/Linux
@@ -63,4 +64,4 @@ License
 
 Note that ffmpeg itself is not placed under this license. For instance, the
 ffmpeg binaries listed in the Installation section are released under the GPL.
-That should be taken into account when using them in your product.
+It should be taken into account when distributing products with them.
