@@ -23,9 +23,9 @@ The following video formats are supported within FFmpegOut.
 Installation
 ------------
 
-The binary executable files of FFmpeg is not included in this repository nor
-the package because they're too large to be included. They have to be added
-manually after an installation of FFmpegOut.
+The binary executable files of FFmpeg is not included in this repository
+because they're too large to be included. They have to be added manually after
+an installation of FFmpegOut.
 
 Any recent versions of FFmpeg would work, but it's recommended to use
 [KeatsPeeks]' static-linked executables because they're used for development
