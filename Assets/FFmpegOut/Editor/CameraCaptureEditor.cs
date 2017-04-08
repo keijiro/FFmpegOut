@@ -12,6 +12,7 @@ namespace FFmpegOut
         SerializedProperty _height;
         SerializedProperty _frameRate;
         SerializedProperty _codec;
+        SerializedProperty _startTime;
         SerializedProperty _recordLength;
 
         static GUIContent [] _codecLabels = {
@@ -29,6 +30,7 @@ namespace FFmpegOut
             _height = serializedObject.FindProperty("_height");
             _frameRate = serializedObject.FindProperty("_frameRate");
             _codec = serializedObject.FindProperty("_codec");
+            _startTime = serializedObject.FindProperty("_startTime");
             _recordLength = serializedObject.FindProperty("_recordLength");
         }
 
@@ -49,6 +51,7 @@ namespace FFmpegOut
 
             EditorGUILayout.PropertyField(_frameRate);
             EditorGUILayout.IntPopup(_codec, _codecLabels, _codecOptions);
+            EditorGUILayout.PropertyField(_startTime);
             EditorGUILayout.PropertyField(_recordLength);
 
             serializedObject.ApplyModifiedProperties();

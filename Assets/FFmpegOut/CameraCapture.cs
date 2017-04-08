@@ -13,6 +13,7 @@ namespace FFmpegOut
         [SerializeField] int _height = 720;
         [SerializeField] int _frameRate = 30;
         [SerializeField] FFmpegPipe.Codec _codec;
+        [SerializeField] float _startTime = 0;
         [SerializeField] float _recordLength = 5;
 
         #endregion
@@ -34,6 +35,7 @@ namespace FFmpegOut
 
         void OnValidate()
         {
+            _startTime = Mathf.Max(_startTime, 0);
             _recordLength = Mathf.Max(_recordLength, 0.01f);
         }
 
@@ -69,7 +71,7 @@ namespace FFmpegOut
         {
             _elapsed += Time.deltaTime;
 
-            if (_elapsed < _recordLength)
+            if (_startTime <= _elapsed && _elapsed < _startTime + _recordLength)
             {
                 if (_pipe == null) OpenPipe();
             }
