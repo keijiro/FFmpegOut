@@ -1,27 +1,44 @@
 FFmpegOut
 =========
 
-**FFmpegOut** is an experimental plugin that directly exports video files from
-Unity with using FFmpeg as a video encoder.
+**FFmpegOut** is a Unity plugin that records and exports rendered frames in
+Unity to a video file with using [FFmpeg] as a video encoder.
 
-Currently FFmpegOut only supports Windows.
+[FFmpeg]: https://ffmpeg.org/
 
-At the moment, the following video formats are supported:
+System Requirements
+-------------------
 
-- ProRes 422 with the QuickTime container
-- H.264 with the MP4 container
-- VP8 with the WebM container
+FFmpegOut only supports desktop platforms (Windows/macOS/Linux).
+
+Supported codecs
+----------------
+
+The following video formats are supported within FFmpegOut.
+
+- QuickTime/ProRes 422
+- MP4/H.264
+- WebM/VP8
 
 Installation
 ------------
 
-The binary executable file of FFmpeg (ffmpeg.exe) is not included in this
-repository nor the package because it's too huge to be included. It has to be
-installed manually after downloading.
+The binary executable files of FFmpeg (ffmpeg.exe) is not included in this
+repository nor the package because it's too large to be included. It has to be
+added manually after installation of FFmpegOut.
 
-Any recent versions of FFmpeg would work nicely, but I recommend using the
-following static-linked executable because I'm using this for development.
+Any recent versions of FFmpeg would work, but I recommend using the following
+static-linked executables because I'm using this for testing.
 
-https://github.com/KeatsPeeks/ffmpeg-static/blob/master/bin/win32/x64/ffmpeg.exe
+- Windows:
+  https://github.com/KeatsPeeks/ffmpeg-static/blob/master/bin/win32/x64/ffmpeg.exe
 
-Download the file above and copy it into `Assets/StreamingAssets/FFmpegOut/`.
+- macOS:
+  https://github.com/KeatsPeeks/ffmpeg-static/blob/master/bin/darwin/x64/ffmpeg
+
+- Linux:
+  https://github.com/KeatsPeeks/ffmpeg-static/tree/master/bin/linux/x64/ffmpeg
+
+Download one of these files above and copy it into
+`Assets/StreamingAssets/FFmpegOut/(platform name)/`.
+
