@@ -49,9 +49,18 @@ The execute permission should be added to these binaries before using
 
 [KeatsPeeks]: https://github.com/KeatsPeeks
 
-About Performance
------------------
+Performance Considerations
+--------------------------
 
 FFmpeg is not optimized for real-time capturing. The main scope of the plugin
 is to reduce rendering time when using Unity for pre-rendering. Using it in an
 interactive application is not recommended.
+
+License
+-------
+
+[MIT](LICENSE.md)
+
+Note that ffmpeg itself is not placed under this license. For instance, the
+ffmpeg binaries listed in the Installation section are released under the GPL.
+That should be taken into account when using them in your product.
