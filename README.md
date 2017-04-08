@@ -23,9 +23,9 @@ The following video formats are supported within FFmpegOut.
 Installation
 ------------
 
-The binary executable files of FFmpeg (ffmpeg.exe) is not included in this
-repository nor the package because it's too large to be included. It has to be
-added manually after installation of FFmpegOut.
+The binary executable files of FFmpeg is not included in this repository nor
+the package because it's too large to be included. It has to be added manually
+after installation of FFmpegOut.
 
 Any recent versions of FFmpeg would work, but I recommend using [KeatsPeeks]'
 static-linked executables because I'm using them for testing.
@@ -53,8 +53,8 @@ Performance Considerations
 --------------------------
 
 FFmpeg is not optimized for real-time capturing. The main scope of the plugin
-is to reduce rendering time when using Unity for pre-rendering. Using it in an
-interactive application is not recommended.
+is to reduce rendering time when using Unity for pre-rendering. Using it in
+interactive applications is not recommended.
 
 License
 -------
