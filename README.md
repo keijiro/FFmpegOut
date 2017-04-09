@@ -50,6 +50,34 @@ The execute permission should be added to these binaries before using
 
 [KeatsPeeks]: https://github.com/KeatsPeeks
 
+How to Use
+----------
+
+Add the `CameraCapture` script to a camera that is going to render frames to be
+exported.
+
+The `CameraCapture` component has a few settings.
+
+![inspector](http://i.imgur.com/WUUhTuK.png)
+
+- The size of frames can be changed with the *Set Resolution* properties. This
+  is handy for exporting videos in a specific format.
+- The frame rate of exported videos is determined with the *Frame Rate*
+  property rather than the actual application frame rate. It's recommended to
+  use the *Allow Slow Down* property to keep the frame rate of the exported
+  video stable. It fixes the delta time between frames and stops syncing with
+  real time (wall-clock time).
+
+TIPS
+----
+
+- Some codecs don't support arbitrary resolution and cause errors when
+  capturing the game view in free aspect mode. It's recommended to use the Set
+  Resolution property in such a case.
+- FFmpeg H.264 encoder is highly optimized and has great quality/bandwidth
+  balance compared to other encoders. It's recommended to use H.264 when there
+  is no specific reason to choose other codecs.
+
 Performance Considerations
 --------------------------
 
