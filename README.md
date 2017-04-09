@@ -1,6 +1,8 @@
 FFmpegOut
 =========
 
+![gif](http://i.imgur.com/bkQlFxX.gif)
+
 **FFmpegOut** is a Unity plugin that records and exports rendered frames in
 Unity to a video file with using [FFmpeg] as a video encoder.
 
