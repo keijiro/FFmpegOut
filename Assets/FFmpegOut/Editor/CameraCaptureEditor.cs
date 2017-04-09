@@ -11,6 +11,7 @@ namespace FFmpegOut
         SerializedProperty _width;
         SerializedProperty _height;
         SerializedProperty _frameRate;
+        SerializedProperty _allowSlowDown;
         SerializedProperty _codec;
         SerializedProperty _startTime;
         SerializedProperty _recordLength;
@@ -29,6 +30,7 @@ namespace FFmpegOut
             _width = serializedObject.FindProperty("_width");
             _height = serializedObject.FindProperty("_height");
             _frameRate = serializedObject.FindProperty("_frameRate");
+            _allowSlowDown = serializedObject.FindProperty("_allowSlowDown");
             _codec = serializedObject.FindProperty("_codec");
             _startTime = serializedObject.FindProperty("_startTime");
             _recordLength = serializedObject.FindProperty("_recordLength");
@@ -50,6 +52,7 @@ namespace FFmpegOut
             }
 
             EditorGUILayout.PropertyField(_frameRate);
+            EditorGUILayout.PropertyField(_allowSlowDown);
             EditorGUILayout.IntPopup(_codec, _codecLabels, _codecOptions);
             EditorGUILayout.PropertyField(_startTime);
             EditorGUILayout.PropertyField(_recordLength);

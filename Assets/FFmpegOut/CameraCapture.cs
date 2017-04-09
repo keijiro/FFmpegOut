@@ -8,10 +8,11 @@ namespace FFmpegOut
     {
         #region Editable properties
 
-        [SerializeField] bool _setResolution = false;
+        [SerializeField] bool _setResolution = true;
         [SerializeField] int _width = 1280;
         [SerializeField] int _height = 720;
         [SerializeField] int _frameRate = 30;
+        [SerializeField] bool _allowSlowDown = true;
         [SerializeField] FFmpegPipe.Codec _codec;
         [SerializeField] float _startTime = 0;
         [SerializeField] float _recordLength = 5;
@@ -28,6 +29,8 @@ namespace FFmpegOut
 
         RenderTexture _tempTarget;
         GameObject _tempBlitter;
+
+        static int _activePipeCount;
 
         #endregion
 
@@ -128,19 +131,15 @@ namespace FFmpegOut
 
             // Open an output stream.
             _pipe = new FFmpegPipe(name, width, height, _frameRate, _codec);
+            _activePipeCount++;
 
-            // Change the application frame rate.
-            if (Time.captureFramerate == 0)
+            // Change the application frame rate on the first pipe.
+            if (_activePipeCount == 1)
             {
-                Time.captureFramerate = _frameRate;
-            }
-            else if (Time.captureFramerate != _frameRate)
-            {
-                Debug.LogWarning(
-                    "Frame rate mismatch; the application frame rate has been " +
-                    "changed with a different value. Make sure using the same " +
-                    "frame rate when capturing multiple cameras."
-                );
+                if (_allowSlowDown)
+                    Time.captureFramerate = _frameRate;
+                else
+                    Application.targetFrameRate = _frameRate;
             }
 
             Debug.Log("Capture started (" + _pipe.Filename + ")");
@@ -171,6 +170,7 @@ namespace FFmpegOut
                 Debug.Log("Capture ended (" + _pipe.Filename + ")");
 
                 _pipe.Close();
+                _activePipeCount--;
 
                 if (!string.IsNullOrEmpty(_pipe.Error))
                 {
@@ -181,6 +181,15 @@ namespace FFmpegOut
                 }
 
                 _pipe = null;
+
+                // Reset the application frame rate on the last pipe.
+                if (_activePipeCount == 0)
+                {
+                    if (_allowSlowDown)
+                        Time.captureFramerate = 0;
+                    else
+                        Application.targetFrameRate = -1;
+                }
             }
         }
 
