@@ -53,6 +53,14 @@ The CameraCapture component has a few settings.
 
 [Releases]: https://github.com/keijiro/FFmpegOut/releases
 
+Troubleshooting: Win32Exception
+-------------------------------
+
+Sometimes on macOS and Linux, FFmpegOut throws Win32Exception and fails to
+start recording. This is caused because ffmpeg binary doesn't have the
+executable permission. To solve the problem, the executable permission should
+be given to ffmpeg (e.g. `chmod a+x ffmpeg`).
+
 TIPS
 ----
 
@@ -84,6 +92,8 @@ Any recent versions of FFmpeg would work, but it's recommended to use
 
 Download these files and copy them into
 `Assets/StreamingAssets/FFmpegOut/(platform name)/`.
+
+[KeatsPeeks]: https://github.com/KeatsPeeks/ffmpeg-static
 
 License
 -------
