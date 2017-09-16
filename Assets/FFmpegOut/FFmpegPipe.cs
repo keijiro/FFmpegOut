@@ -9,7 +9,7 @@ namespace FFmpegOut
     {
         #region Public properties
 
-        public enum Codec { ProRes, H264, VP8 }
+        public enum Codec { ProRes, H264, VP8, H264Lossless444, H264Lossless420, H264Draft, H264Trasparent, PNGSequence }
 
         public string Filename { get; private set; }
         public string Error { get; private set; }
@@ -78,13 +78,23 @@ namespace FFmpegOut
         static string [] _suffixes = {
             ".mov",
             ".mp4",
-            ".webm"
+            ".webm",
+            ".mp4",
+            ".mp4",
+            ".mp4",
+            ".mp4",
+            "_%010d.png"
         };
 
         static string [] _options = {
             "-c:v prores_ks -pix_fmt yuv422p10le",
             "-pix_fmt yuv420p",
-            "-c:v libvpx"
+            "-c:v libvpx",
+            "-c:v libx264 -preset veryslow -qp 0 -tune film -x264opts ref=9:aq-mode=3:bframes=9 -pix_fmt yuv444p",
+            "-c:v libx264 -preset veryslow -qp 0 -tune film -x264opts ref=9:aq-mode=3:bframes=9 -pix_fmt yuv420p",
+            "-c:v libx264 -preset fast -crf 21 -tune film -x264opts keyint=60 -pix_fmt yuv420p",
+            "-c:v libx264 -preset veryslow -crf 16 -tune film -x264opts ref=9:aq-mode=3:bframes=9 -pix_fmt yuv420p",
+            ""
         };
 
         static string GetSuffix(Codec codec)

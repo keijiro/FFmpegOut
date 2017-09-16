@@ -19,10 +19,14 @@ namespace FFmpegOut
         static GUIContent [] _codecLabels = {
             new GUIContent("ProRes (QuickTime)"),
             new GUIContent("H.264 (MP4)"),
-            new GUIContent("VP8 (WebM)")
+            new GUIContent("VP8 (WebM)"),
+            new GUIContent("H.264 Lossless 4:4:4 (MP4)"),
+            new GUIContent("H.264 Lossless 4:2:0 (MP4)"),
+            new GUIContent("H.264 Draft (MP4)"),
+            new GUIContent("H.264 Trasparent (MP4)")
         };
 
-        static int [] _codecOptions = { 0, 1, 2 };
+        static int [] _codecOptions = { 0, 1, 2, 3, 4, 5, 6};
 
         void OnEnable()
         {
