@@ -27,9 +27,9 @@ Supported Codecs
 
 At the moment, the following video formats are supported within FFmpegOut.
 
-- QuickTime/ProRes 422
-- MP4/H.264
-- WebM/VP8
+- QuickTime/ProRes 422 (Not lossless)
+- MP4/H.264 (Lossless Option)
+- WebM/VP8 (Not Lossless)
 
 How to Use
 ----------
