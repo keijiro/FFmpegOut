@@ -119,7 +119,7 @@ namespace FFmpegOut
             // Apply the screen resolution settings.
             if (_setResolution)
             {
-                _tempTarget = RenderTexture.GetTemporary(width, height);
+                _tempTarget = RenderTexture.GetTemporary(width, height, 24);
                 camera.targetTexture = _tempTarget;
                 _tempBlitter = Blitter.CreateGameObject(camera);
             }
