@@ -1,6 +1,9 @@
-* text=auto
+* -text
 
-Assets/** eol=lf
-ProjectSettings/** eol=lf
+*.cs        text eol=lf diff=csharp
+*.shader    text eol=lf
+*.cginc     text eol=lf
+*.hlsl      text eol=lf
+*.compute   text eol=lf
 
-*.cs diff=csharp
+*.meta      text eol=lf
