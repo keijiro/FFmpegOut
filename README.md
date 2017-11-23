@@ -4,11 +4,11 @@ FFmpegOut
 ![gif](http://i.imgur.com/bkQlFxX.gif)
 
 **FFmpegOut** is a Unity plugin that records and exports rendered frames in
-Unity to a video file with using [FFmpeg] as a video encoder.
+Unity to a video file by using [FFmpeg] as a video encoder.
 
 The main scope of FFmpegOut is to reduce rendering time when using Unity for
 pre-rendering. It greatly reduces the amount of file I/O compared to exporting
-raw image sequences, thus it could be an effective solution when the bandwidth
+raw image sequences, so that it can be an effective solution when the bandwidth
 is the most significant bottleneck. On the other hand, FFmpegOut is not
 optimized for real-time capturing. It's not strongly recommended to use it in
 an interactive application.
@@ -22,25 +22,16 @@ System Requirements
 
 FFmpegOut only supports desktop platforms (Windows/macOS/Linux).
 
-Supported Codecs
-----------------
-
-At the moment, the following video formats are supported within FFmpegOut.
-
-- QuickTime/ProRes 422
-- MP4/H.264
-- WebM/VP8
-
 How to Use
 ----------
 
 Download the latest package from the [Releases] page and import it to the
 project. Then, add the **CameraCapture** component (Add Component -> FFmpegOut
--> Camera Capture) to a camera that is going to render frames to be exported.
+-> Camera Capture) to a camera that is used to render frames to be exported.
 
 The CameraCapture component has a few settings.
 
-![inspector](http://i.imgur.com/WUUhTuK.png)
+![inspector](https://i.imgur.com/JdBquo4.png)
 
 - The size of frames can be changed with the **Set Resolution** properties.
   This is handy for exporting videos in a specific format.
@@ -52,6 +43,39 @@ The CameraCapture component has a few settings.
   slower than real time speed.
 
 [Releases]: https://github.com/keijiro/FFmpegOut/releases
+
+Encoding Presets
+----------------
+
+#### H.264 Default (MP4)
+
+Highly optimized encoder with a moderate quality and a mid-level bit rate.
+**Recemmended for general use.**
+
+#### H.264 Lossless 420 (MP4)
+
+Not actually lossless but the quality is high enough for most use cases.
+**Recommended for pre-rendering use.**
+
+#### H.264 Lossless 444 (MP4)
+
+The highest quality preset. Most software can't decode videos encoded with this
+preset (e.g. Premiere crashes when importing them).
+
+#### ProRes 422 (QuickTime)
+
+ProRes is an intra-frame codec that is gradually phased out but still widely
+used in video editing. The ProRes codec used in FFmpeg is not aggressively
+optimized so that it tends to be slower than other codecs.
+
+#### ProRes 4444 (QuickTime)
+
+**Only this preset supports alpha channel.** Use this when you needs alpha
+channel for composition in editing software (Premiere, After Effects, etc.).
+
+#### VP8 (WebM)
+
+Very low bit rate encoding, optimized for web browser use.
 
 Troubleshooting: Win32Exception
 -------------------------------
@@ -67,9 +91,6 @@ TIPS
 - Some codecs don't support arbitrary resolutions and cause errors when
   capturing the game view in free aspect mode. It's recommended to use the Set
   Resolution properties in such a case.
-- MP4/H.264 is the most preferable option because the FFmpeg H.264 encoder is
-  highly optimized and has a great quality/bandwidth balance compared to other
-  codecs. Use it when there is no specific reason to choose other codecs.
 
 Using This Repository
 ---------------------
