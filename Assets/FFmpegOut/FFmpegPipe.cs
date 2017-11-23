@@ -98,7 +98,7 @@ namespace FFmpegOut
             "-pix_fmt yuv444p -preset ultrafast -crf 0",
             "-c:v prores_ks -pix_fmt yuv422p10le",
             "-c:v prores_ks -pix_fmt yuva444p10le",
-            "-c:v libvpx"
+            "-c:v libvpx -pix_fmt yuv420p"
         };
 
         static string GetSuffix(Preset preset)

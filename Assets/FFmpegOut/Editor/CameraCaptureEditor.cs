@@ -25,7 +25,7 @@ namespace FFmpegOut
             new GUIContent("VP8 (WebM)")
         };
 
-        static int [] _presetOptions = { 0, 1, 2, 3, 4 };
+        static int [] _presetOptions = { 0, 1, 2, 3, 4, 5 };
 
         void OnEnable()
         {
