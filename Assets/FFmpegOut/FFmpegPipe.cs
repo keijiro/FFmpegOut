@@ -11,6 +11,7 @@ namespace FFmpegOut
 
         public enum Preset {
             ProRes422,
+            ProRes4444,
             H264Default,
             H264Lossless420,
             H264Lossless444,
@@ -29,7 +30,7 @@ namespace FFmpegOut
             name += DateTime.Now.ToString(" yyyy MMdd HHmmss");
             Filename = name.Replace(" ", "_") + GetSuffix(preset);
 
-            var opt = "-y -f rawvideo -vcodec rawvideo -pixel_format rgb24";
+            var opt = "-y -f rawvideo -vcodec rawvideo -pixel_format rgba";
             opt += " -colorspace bt709";
             opt += " -video_size " + width + "x" + height;
             opt += " -framerate " + framerate;
@@ -83,18 +84,20 @@ namespace FFmpegOut
         BinaryWriter _stdin;
 
         static string [] _suffixes = {
+            ".mp4",
+            ".mp4",
+            ".mp4",
             ".mov",
-            ".mp4",
-            ".mp4",
-            ".mp4",
+            ".mov",
             ".webm"
         };
 
         static string [] _options = {
-            "-c:v prores_ks -pix_fmt yuv422p10le",
             "-pix_fmt yuv420p",
             "-pix_fmt yuv420p -preset ultrafast -crf 0",
             "-pix_fmt yuv444p -preset ultrafast -crf 0",
+            "-c:v prores_ks -pix_fmt yuv422p10le",
+            "-c:v prores_ks -pix_fmt yuva444p10le",
             "-c:v libvpx"
         };
 

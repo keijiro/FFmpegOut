@@ -91,7 +91,7 @@ namespace FFmpegOut
                 var tempRT = RenderTexture.GetTemporary(source.width, source.height);
                 Graphics.Blit(source, tempRT, _material, 0);
 
-                var tempTex = new Texture2D(source.width, source.height, TextureFormat.RGB24, false);
+                var tempTex = new Texture2D(source.width, source.height, TextureFormat.RGBA32, false);
                 tempTex.ReadPixels(new Rect(0, 0, source.width, source.height), 0, 0, false);
                 tempTex.Apply();
 

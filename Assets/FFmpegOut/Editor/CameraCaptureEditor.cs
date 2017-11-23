@@ -17,10 +17,11 @@ namespace FFmpegOut
         SerializedProperty _recordLength;
 
         static GUIContent [] _presetLabels = {
-            new GUIContent("ProRes 422 (QuickTime)"),
             new GUIContent("H.264 Default (MP4)"),
-            new GUIContent("H.264 Lossless 4:2:0 (MP4)"),
-            new GUIContent("H.264 Lossless 4:4:4 (MP4)"),
+            new GUIContent("H.264 Lossless 420 (MP4)"),
+            new GUIContent("H.264 Lossless 444 (MP4)"),
+            new GUIContent("ProRes 422 (QuickTime)"),
+            new GUIContent("ProRes 4444 (QuickTime)"),
             new GUIContent("VP8 (WebM)")
         };
 
