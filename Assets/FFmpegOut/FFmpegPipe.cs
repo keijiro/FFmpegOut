@@ -24,6 +24,7 @@ namespace FFmpegOut
             Filename = name.Replace(" ", "_") + GetSuffix(codec);
 
             var opt = "-y -f rawvideo -vcodec rawvideo -pixel_format rgb24";
+            opt += " -colorspace bt709";
             opt += " -video_size " + width + "x" + height;
             opt += " -framerate " + framerate;
             opt += " -loglevel warning -i - " + GetOptions(codec);
