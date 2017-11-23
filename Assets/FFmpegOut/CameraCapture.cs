@@ -13,7 +13,7 @@ namespace FFmpegOut
         [SerializeField] int _height = 720;
         [SerializeField] int _frameRate = 30;
         [SerializeField] bool _allowSlowDown = true;
-        [SerializeField] FFmpegPipe.Codec _codec;
+        [SerializeField] FFmpegPipe.Preset _preset;
         [SerializeField] float _startTime = 0;
         [SerializeField] float _recordLength = 5;
 
@@ -130,7 +130,7 @@ namespace FFmpegOut
             }
 
             // Open an output stream.
-            _pipe = new FFmpegPipe(name, width, height, _frameRate, _codec);
+            _pipe = new FFmpegPipe(name, width, height, _frameRate, _preset);
             _activePipeCount++;
 
             // Change the application frame rate on the first pipe.
