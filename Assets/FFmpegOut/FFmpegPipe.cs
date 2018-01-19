@@ -10,11 +10,11 @@ namespace FFmpegOut
         #region Public properties
 
         public enum Preset {
-            ProRes422,
-            ProRes4444,
             H264Default,
             H264Lossless420,
             H264Lossless444,
+            ProRes422,
+            ProRes4444,
             VP8Default
         }
 
