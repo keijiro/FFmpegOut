@@ -13,7 +13,7 @@ namespace FFmpegOut
         [SerializeField] int _height = 720;
         [SerializeField] int _frameRate = 30;
         [SerializeField] bool _allowSlowDown = true;
-        [SerializeField] FFmpegPipe.Preset _preset;
+        [SerializeField] FFmpegPipe.Preset _preset = FFmpegPipe.Preset.H264Default;
         [SerializeField] float _startTime = 0;
         [SerializeField] float _recordLength = 5;
 
@@ -21,7 +21,6 @@ namespace FFmpegOut
 
         #region Private members
 
-        [SerializeField, HideInInspector] Shader _shader;
         Material _material;
 
         FFmpegPipe _pipe;
@@ -67,7 +66,7 @@ namespace FFmpegOut
 
         void Start()
         {
-            _material = new Material(_shader);
+            _material = new Material(Shader.Find("Hidden/FFmpegOut/CameraCapture"));
         }
 
         void Update()
