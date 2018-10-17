@@ -5,7 +5,7 @@ using System;
 namespace FFmpegOut
 {
     // A stream pipe class that invokes ffmpeg and connect to it.
-    class FFmpegPipe
+    public sealed class FFmpegPipe
     {
         #region Public properties
 
@@ -45,15 +45,13 @@ namespace FFmpegOut
             info.RedirectStandardError = true;
 
             _subprocess = Process.Start(info);
-            _stdin = new BinaryWriter(_subprocess.StandardInput.BaseStream);
         }
 
         public void Write(byte[] data)
         {
             if (_subprocess == null) return;
-
-            _stdin.Write(data);
-            _stdin.Flush();
+            _subprocess.StandardInput.BaseStream.Flush();
+            _subprocess.StandardInput.BaseStream.Write(data, 0, data.Length);
         }
 
         public void Close()
@@ -73,7 +71,6 @@ namespace FFmpegOut
             outputReader.Dispose();
 
             _subprocess = null;
-            _stdin = null;
         }
 
         #endregion
@@ -81,7 +78,6 @@ namespace FFmpegOut
         #region Private members
 
         Process _subprocess;
-        BinaryWriter _stdin;
 
         static string [] _suffixes = {
             ".mp4",
