@@ -47,11 +47,12 @@ namespace FFmpegOut
             _subprocess = Process.Start(info);
         }
 
-        public void Write(byte[] data)
+        public System.Threading.Tasks.Task WriteAsync(byte[] data)
         {
-            if (_subprocess == null) return;
-            _subprocess.StandardInput.BaseStream.Flush();
-            _subprocess.StandardInput.BaseStream.Write(data, 0, data.Length);
+            return System.Threading.Tasks.Task.Run(() => {
+                _subprocess.StandardInput.BaseStream.Flush();
+                _subprocess.StandardInput.BaseStream.Write(data, 0, data.Length);
+            });
         }
 
         public void Close()

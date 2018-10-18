@@ -31,6 +31,7 @@ namespace FFmpegOut
         #region Private objects
 
         FFmpegPipe _pipe;
+        System.Threading.Tasks.Task _task;
 
         Queue<AsyncGPUReadbackRequest> _readbackQueue = new Queue<AsyncGPUReadbackRequest>(4);
 
@@ -87,7 +88,8 @@ namespace FFmpegOut
                 }
 
                 // Feed the frame to the ffmpeg pipe.
-                _pipe.Write(req.GetData<byte>().ToArray());
+                if (_task != null) _task.Wait();
+                _task = _pipe.WriteAsync(req.GetData<byte>().ToArray());
 
                 // Done. Remove the frame from the queue.
                 _readbackQueue.Dequeue();
@@ -117,6 +119,7 @@ namespace FFmpegOut
             {
                 Debug.Log("Capture stopped (" + _pipe.Filename + ")");
 
+                if (_task != null) _task.Wait();
                 _pipe.Close();
 
                 if (!string.IsNullOrEmpty(_pipe.Error))
