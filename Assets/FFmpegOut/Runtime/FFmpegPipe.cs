@@ -47,11 +47,14 @@ namespace FFmpegOut
             _subprocess = Process.Start(info);
         }
 
-        public System.Threading.Tasks.Task WriteAsync(byte[] data)
+        public System.Threading.Tasks.Task WriteAsync(Unity.Collections.NativeArray<byte> data)
         {
             return System.Threading.Tasks.Task.Run(() => {
+                if (_buffer == null || _buffer.Length != data.Length)
+                    _buffer = new byte[data.Length];
+                data.CopyTo(_buffer);
                 _subprocess.StandardInput.BaseStream.Flush();
-                _subprocess.StandardInput.BaseStream.Write(data, 0, data.Length);
+                _subprocess.StandardInput.BaseStream.Write(_buffer, 0, _buffer.Length);
             });
         }
 
@@ -72,6 +75,7 @@ namespace FFmpegOut
             outputReader.Dispose();
 
             _subprocess = null;
+            _buffer = null;
         }
 
         #endregion
@@ -79,6 +83,7 @@ namespace FFmpegOut
         #region Private members
 
         Process _subprocess;
+        byte[] _buffer;
 
         static string [] _suffixes = {
             ".mp4",

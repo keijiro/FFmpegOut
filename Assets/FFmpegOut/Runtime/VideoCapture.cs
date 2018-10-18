@@ -89,7 +89,7 @@ namespace FFmpegOut
 
                 // Feed the frame to the ffmpeg pipe.
                 if (_task != null) _task.Wait();
-                _task = _pipe.WriteAsync(req.GetData<byte>().ToArray());
+                _task = _pipe.WriteAsync(req.GetData<byte>());
 
                 // Done. Remove the frame from the queue.
                 _readbackQueue.Dequeue();
