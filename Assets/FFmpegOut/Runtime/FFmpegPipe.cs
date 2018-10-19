@@ -1,10 +1,12 @@
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System;
+using System.Threading;
+using Unity.Collections;
 
 namespace FFmpegOut
 {
-    // A stream pipe class that invokes ffmpeg and connect to it.
     public sealed class FFmpegPipe
     {
         #region Public properties
@@ -45,22 +47,33 @@ namespace FFmpegOut
             info.RedirectStandardError = true;
 
             _subprocess = Process.Start(info);
+            _copyThread = new Thread(CopyThread);
+            _pipeThread = new Thread(PipeThread);
+            _copyThread.Start();
+            _pipeThread.Start();
         }
 
-        public System.Threading.Tasks.Task WriteAsync(Unity.Collections.NativeArray<byte> data)
+        public void PushFrameAsync(NativeArray<byte> data)
         {
-            return System.Threading.Tasks.Task.Run(() => {
-                if (_buffer == null || _buffer.Length != data.Length)
-                    _buffer = new byte[data.Length];
-                data.CopyTo(_buffer);
-                _subprocess.StandardInput.BaseStream.Flush();
-                _subprocess.StandardInput.BaseStream.Write(_buffer, 0, _buffer.Length);
-            });
+            lock (_copyQueue) _copyQueue.Enqueue(data);
+            _copyStart.Set();
+        }
+
+        public void CompletePushFrames()
+        {
+            _copyStart.Set();
+            _copyEnd.WaitOne();
         }
 
         public void Close()
         {
-            if (_subprocess == null) return;
+            _terminate = true;
+
+            _copyStart.Set();
+            _pipeStart.Set();
+
+            _copyThread.Join();
+            _pipeThread.Join();
 
             _subprocess.StandardInput.Close();
             _subprocess.WaitForExit();
@@ -75,7 +88,8 @@ namespace FFmpegOut
             outputReader.Dispose();
 
             _subprocess = null;
-            _buffer = null;
+            _copyThread = null;
+            _pipeThread = null;
         }
 
         #endregion
@@ -83,7 +97,17 @@ namespace FFmpegOut
         #region Private members
 
         Process _subprocess;
-        byte[] _buffer;
+        Thread _copyThread;
+        Thread _pipeThread;
+
+        AutoResetEvent _copyStart = new AutoResetEvent(false);
+        AutoResetEvent _copyEnd   = new AutoResetEvent(false);
+        AutoResetEvent _pipeStart = new AutoResetEvent(false);
+        bool _terminate;
+
+        Queue<NativeArray<byte>> _copyQueue = new Queue<NativeArray<byte>>();
+        Queue<byte[]> _pipeQueue = new Queue<byte[]>();
+        Queue<byte[]> _freeBuffer = new Queue<byte[]>();
 
         static string [] _suffixes = {
             ".mp4",
@@ -111,6 +135,57 @@ namespace FFmpegOut
         static string GetOptions(Preset preset)
         {
             return _options[(int)preset];
+        }
+
+        #endregion
+
+        #region Thread entry methods
+
+        void CopyThread()
+        {
+            while (!_terminate)
+            {
+                _copyStart.WaitOne();
+
+                while (!_terminate && _copyQueue.Count > 0)
+                {
+                    NativeArray<byte> source;
+                    lock (_copyQueue) source = _copyQueue.Dequeue();
+
+                    byte[] buffer = null;
+                    if (_freeBuffer.Count > 0)
+                        lock (_freeBuffer) buffer = _freeBuffer.Dequeue();
+
+                    if (buffer == null || buffer.Length != source.Length)
+                        buffer = source.ToArray();
+                    else
+                        source.CopyTo(buffer);
+
+                    lock (_pipeQueue) _pipeQueue.Enqueue(buffer);
+                    _pipeStart.Set();
+                }
+
+                _copyEnd.Set();
+            }
+        }
+
+        void PipeThread()
+        {
+            while (!_terminate)
+            {
+                _pipeStart.WaitOne();
+
+                while (!_terminate && _pipeQueue.Count > 0)
+                {
+                    byte[] buffer;
+                    lock (_pipeQueue) buffer = _pipeQueue.Dequeue();
+
+                    _subprocess.StandardInput.BaseStream.Write(buffer, 0, buffer.Length);
+                    _subprocess.StandardInput.BaseStream.Flush();
+
+                    lock (_freeBuffer) _freeBuffer.Enqueue(buffer);
+                }
+            }
         }
 
         #endregion

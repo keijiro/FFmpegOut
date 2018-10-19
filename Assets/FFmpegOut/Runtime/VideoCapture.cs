@@ -3,6 +3,7 @@
 
 using UnityEngine;
 using UnityEngine.Rendering;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace FFmpegOut
@@ -31,9 +32,9 @@ namespace FFmpegOut
         #region Private objects
 
         FFmpegPipe _pipe;
-        System.Threading.Tasks.Task _task;
 
-        Queue<AsyncGPUReadbackRequest> _readbackQueue = new Queue<AsyncGPUReadbackRequest>(4);
+        Queue<AsyncGPUReadbackRequest> _readbackQueue
+            = new Queue<AsyncGPUReadbackRequest>(4);
 
         Material _blitMaterial;
 
@@ -56,8 +57,9 @@ namespace FFmpegOut
                 _blitMaterial = new Material(shader);
             }
 
-            // Blit and readback
-            var rt = RenderTexture.GetTemporary(source.width, source.height, 0, RenderTextureFormat.ARGB32);
+            // Start reading the frame back from the GPU memory.
+            var rt = RenderTexture.GetTemporary
+                (source.width, source.height, 0, RenderTextureFormat.ARGB32);
             Graphics.Blit(source, rt, _blitMaterial);
             _readbackQueue.Enqueue(AsyncGPUReadback.Request(rt));
             RenderTexture.ReleaseTemporary(rt);
@@ -77,7 +79,7 @@ namespace FFmpegOut
                     continue;
                 }
 
-                // Break when found a frame that hasn't been read back yet.
+                // Break on an uncompleted readback.
                 if (!req.done) break;
 
                 // Lazy initialization of ffmpeg pipe
@@ -88,8 +90,7 @@ namespace FFmpegOut
                 }
 
                 // Feed the frame to the ffmpeg pipe.
-                if (_task != null) _task.Wait();
-                _task = _pipe.WriteAsync(req.GetData<byte>());
+                _pipe.PushFrameAsync(req.GetData<byte>());
 
                 // Done. Remove the frame from the queue.
                 _readbackQueue.Dequeue();
@@ -119,7 +120,6 @@ namespace FFmpegOut
             {
                 Debug.Log("Capture stopped (" + _pipe.Filename + ")");
 
-                if (_task != null) _task.Wait();
                 _pipe.Close();
 
                 if (!string.IsNullOrEmpty(_pipe.Error))
@@ -137,16 +137,32 @@ namespace FFmpegOut
             if (_blitMaterial != null) Destroy(_blitMaterial);
         }
 
+        IEnumerator Start()
+        {
+            var eof = new WaitForEndOfFrame();
+
+            while (true)
+            {
+                yield return eof;
+
+                // The GPU readback buffer will be disposed soon, so wait for
+                // completion on frame pushes.
+                _pipe?.CompletePushFrames();
+            }
+        }
+
         void Update()
         {
             ProcessQueue();
 
+            // Render texture mode
             if (GetComponent<Camera>() == null && _sourceTexture != null)
                 QueueFrame(_sourceTexture);
         }
 
         void OnRenderImage(RenderTexture source, RenderTexture destination)
         {
+            // Camera capture mode
             QueueFrame(source);
 
             Graphics.Blit(source, destination);
