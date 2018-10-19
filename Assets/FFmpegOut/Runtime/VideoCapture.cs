@@ -32,55 +32,63 @@ namespace FFmpegOut
         #region Private objects
 
         FFmpegPipe _pipe;
-
-        Queue<AsyncGPUReadbackRequest> _readbackQueue
-            = new Queue<AsyncGPUReadbackRequest>(4);
-
         Material _blitMaterial;
 
         #endregion
 
-        #region Frame readback queue operations
+        #region Frame readback queue
+
+        struct Frame
+        {
+            public AsyncGPUReadbackRequest request;
+            public RenderTexture texture;
+        }
+
+        Queue<Frame> _readbackQueue = new Queue<Frame>(4);
 
         void QueueFrame(RenderTexture source)
         {
-            if (_readbackQueue.Count > 3)
+            if (_readbackQueue.Count > 4)
             {
                 Debug.LogWarning("Too many GPU readback requests.");
                 return;
             }
 
-            // Lazy initialization of the conversion shader.
+            // Lazy initialization of the blit shader
             if (_blitMaterial == null)
             {
                 var shader = Shader.Find("Hidden/FFmpegOut/CameraCapture");
                 _blitMaterial = new Material(shader);
             }
 
-            // Start reading the frame back from the GPU memory.
+            // Blit to a tenporary RT.
             var rt = RenderTexture.GetTemporary
                 (source.width, source.height, 0, RenderTextureFormat.ARGB32);
-            Graphics.Blit(source, rt, _blitMaterial);
-            _readbackQueue.Enqueue(AsyncGPUReadback.Request(rt));
-            RenderTexture.ReleaseTemporary(rt);
+            Graphics.Blit(source, rt, _blitMaterial, 0);
+
+            // Request read-back and push it to the queue.
+            _readbackQueue.Enqueue(new Frame {
+                request = AsyncGPUReadback.Request(rt),
+                texture = rt
+            });
         }
 
         void ProcessQueue()
         {
             while (_readbackQueue.Count > 0)
             {
-                var req = _readbackQueue.Peek();
+                var req = _readbackQueue.Peek().request;
+
+                // Break on an uncompleted readback.
+                if (!req.done) break;
 
                 // Skip error frames.
                 if (req.hasError)
                 {
                     Debug.LogWarning("GPU readback error was detected.");
-                    _readbackQueue.Dequeue();
+                    RenderTexture.ReleaseTemporary(_readbackQueue.Dequeue().texture);
                     continue;
                 }
-
-                // Break on an uncompleted readback.
-                if (!req.done) break;
 
                 // Lazy initialization of ffmpeg pipe
                 if (_pipe == null)
@@ -93,7 +101,7 @@ namespace FFmpegOut
                 _pipe.PushFrameAsync(req.GetData<byte>());
 
                 // Done. Remove the frame from the queue.
-                _readbackQueue.Dequeue();
+                RenderTexture.ReleaseTemporary(_readbackQueue.Dequeue().texture);
             }
         }
 
@@ -103,6 +111,7 @@ namespace FFmpegOut
 
         void OnEnable()
         {
+            // Check if ffmpeg is available. Disable itself when unavailable.
             if (!FFmpegConfig.CheckAvailable)
             {
                 Debug.LogError(
@@ -116,6 +125,7 @@ namespace FFmpegOut
 
         void OnDisable()
         {
+            // Stop and close an active pipe.
             if (_pipe != null)
             {
                 Debug.Log("Capture stopped (" + _pipe.Filename + ")");
@@ -130,6 +140,10 @@ namespace FFmpegOut
 
                 _pipe = null;
             }
+
+            // Dispose remains in the readback queue.
+            while (_readbackQueue.Count > 0)
+                RenderTexture.ReleaseTemporary(_readbackQueue.Dequeue().texture);
         }
 
         void OnDestroy()

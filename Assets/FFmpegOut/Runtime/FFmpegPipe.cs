@@ -53,22 +53,35 @@ namespace FFmpegOut
             _pipeThread.Start();
         }
 
+        bool _pushed;
+
         public void PushFrameAsync(NativeArray<byte> data)
         {
+            if (!_pushed)
+            {
+                _copyMutex.ReleaseMutex();
+                _pushed = true;
+            }
+
             lock (_copyQueue) _copyQueue.Enqueue(data);
+
             _copyStart.Set();
         }
 
         public void CompletePushFrames()
         {
-            _copyStart.Set();
-            _copyEnd.WaitOne();
+            if (_pushed)
+            {
+                _copyMutex.WaitOne();
+                _pushed = false;
+            }
         }
 
         public void Close()
         {
             _terminate = true;
 
+            _copyMutex.ReleaseMutex();
             _copyStart.Set();
             _pipeStart.Set();
 
@@ -100,8 +113,8 @@ namespace FFmpegOut
         Thread _copyThread;
         Thread _pipeThread;
 
+        Mutex _copyMutex = new Mutex(true);
         AutoResetEvent _copyStart = new AutoResetEvent(false);
-        AutoResetEvent _copyEnd   = new AutoResetEvent(false);
         AutoResetEvent _pipeStart = new AutoResetEvent(false);
         bool _terminate;
 
@@ -146,11 +159,12 @@ namespace FFmpegOut
             while (!_terminate)
             {
                 _copyStart.WaitOne();
+                _copyMutex.WaitOne();
 
                 while (!_terminate && _copyQueue.Count > 0)
                 {
                     NativeArray<byte> source;
-                    lock (_copyQueue) source = _copyQueue.Dequeue();
+                    lock (_copyQueue) source = _copyQueue.Peek();
 
                     byte[] buffer = null;
                     if (_freeBuffer.Count > 0)
@@ -163,9 +177,11 @@ namespace FFmpegOut
 
                     lock (_pipeQueue) _pipeQueue.Enqueue(buffer);
                     _pipeStart.Set();
+
+                    lock (_copyQueue) _copyQueue.Dequeue();
                 }
 
-                _copyEnd.Set();
+                _copyMutex.ReleaseMutex();
             }
         }
 
