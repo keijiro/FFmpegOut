@@ -20,9 +20,9 @@ namespace FFmpegOut
             set { _sourceTexture = value; }
         }
 
-        [SerializeField] FFmpegPipe.Preset _preset;
+        [SerializeField] FFmpegPreset _preset;
 
-        public FFmpegPipe.Preset preset {
+        public FFmpegPreset preset {
             get { return _preset; }
             set { _preset = value; }
         }

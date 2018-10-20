@@ -1,3 +1,6 @@
+// FFmpegOut - FFmpeg video encoding plugin for Unity
+// https://github.com/keijiro/KlakNDI
+
 using UnityEngine;
 
 namespace FFmpegOut

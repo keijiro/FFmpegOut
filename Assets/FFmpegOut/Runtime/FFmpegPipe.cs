@@ -1,3 +1,6 @@
+// FFmpegOut - FFmpeg video encoding plugin for Unity
+// https://github.com/keijiro/KlakNDI
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -11,15 +14,6 @@ namespace FFmpegOut
     {
         #region Public properties
 
-        public enum Preset {
-            H264Default,
-            H264Lossless420,
-            H264Lossless444,
-            ProRes422,
-            ProRes4444,
-            VP8Default
-        }
-
         public string Filename { get; private set; }
         public string Error { get; private set; }
 
@@ -27,18 +21,24 @@ namespace FFmpegOut
 
         #region Public methods
 
-        public FFmpegPipe(string name, int width, int height, int framerate, Preset preset)
+        public FFmpegPipe(
+            string name, int width, int height, int framerate,
+            FFmpegPreset preset
+        )
         {
+            // Output file name
             name += DateTime.Now.ToString(" yyyy MMdd HHmmss");
-            Filename = name.Replace(" ", "_") + GetSuffix(preset);
+            Filename = name.Replace(" ", "_") + preset.GetSuffix();
 
+            // ffmpeg command line options
             var opt = "-y -f rawvideo -vcodec rawvideo -pixel_format rgba";
             opt += " -colorspace bt709";
             opt += " -video_size " + width + "x" + height;
             opt += " -framerate " + framerate;
-            opt += " -loglevel warning -i - " + GetOptions(preset);
+            opt += " -loglevel warning -i - " + preset.GetOptions();
             opt += " " + Filename;
 
+            // Subprocess options
             var info = new ProcessStartInfo(FFmpegConfig.BinaryPath, opt);
             info.UseShellExecute = false;
             info.CreateNoWindow = true;
@@ -46,48 +46,39 @@ namespace FFmpegOut
             info.RedirectStandardOutput = true;
             info.RedirectStandardError = true;
 
+            // Start ffmpeg subprocess.
             _subprocess = Process.Start(info);
+
+            // Start copy/pipe subthreads.
             _copyThread = new Thread(CopyThread);
             _pipeThread = new Thread(PipeThread);
             _copyThread.Start();
             _pipeThread.Start();
         }
 
-        bool _pushed;
-
         public void PushFrameAsync(NativeArray<byte> data)
         {
-            if (!_pushed)
-            {
-                _copyMutex.ReleaseMutex();
-                _pushed = true;
-            }
-
             lock (_copyQueue) _copyQueue.Enqueue(data);
-
-            _copyStart.Set();
+            _copyPing.Set();
         }
 
         public void CompletePushFrames()
         {
-            if (_pushed)
-            {
-                _copyMutex.WaitOne();
-                _pushed = false;
-            }
+            while (_copyQueue.Count > 0) _copyEnd.WaitOne();
         }
 
         public void Close()
         {
+            // Terminate the subthreads.
             _terminate = true;
 
-            _copyMutex.ReleaseMutex();
-            _copyStart.Set();
-            _pipeStart.Set();
+            _copyPing.Set();
+            _pipePing.Set();
 
             _copyThread.Join();
             _pipeThread.Join();
 
+            // Close ffmpeg subprocess.
             _subprocess.StandardInput.Close();
             _subprocess.WaitForExit();
 
@@ -99,10 +90,6 @@ namespace FFmpegOut
 
             outputReader.Close();
             outputReader.Dispose();
-
-            _subprocess = null;
-            _copyThread = null;
-            _pipeThread = null;
         }
 
         #endregion
@@ -113,92 +100,81 @@ namespace FFmpegOut
         Thread _copyThread;
         Thread _pipeThread;
 
-        Mutex _copyMutex = new Mutex(true);
-        AutoResetEvent _copyStart = new AutoResetEvent(false);
-        AutoResetEvent _pipeStart = new AutoResetEvent(false);
+        AutoResetEvent _copyPing = new AutoResetEvent(false);
+        AutoResetEvent _copyEnd  = new AutoResetEvent(false);
+        AutoResetEvent _pipePing = new AutoResetEvent(false);
         bool _terminate;
 
         Queue<NativeArray<byte>> _copyQueue = new Queue<NativeArray<byte>>();
         Queue<byte[]> _pipeQueue = new Queue<byte[]>();
         Queue<byte[]> _freeBuffer = new Queue<byte[]>();
 
-        static string [] _suffixes = {
-            ".mp4",
-            ".mp4",
-            ".mp4",
-            ".mov",
-            ".mov",
-            ".webm"
-        };
-
-        static string [] _options = {
-            "-pix_fmt yuv420p",
-            "-pix_fmt yuv420p -preset ultrafast -crf 0",
-            "-pix_fmt yuv444p -preset ultrafast -crf 0",
-            "-c:v prores_ks -pix_fmt yuv422p10le",
-            "-c:v prores_ks -pix_fmt yuva444p10le",
-            "-c:v libvpx -pix_fmt yuv420p"
-        };
-
-        static string GetSuffix(Preset preset)
-        {
-            return _suffixes[(int)preset];
-        }
-
-        static string GetOptions(Preset preset)
-        {
-            return _options[(int)preset];
-        }
-
         #endregion
 
-        #region Thread entry methods
+        #region Subthread entry points
 
+        // CopyThread - Copies frames given from the readback queue to the pipe
+        // queue. This is required because readback buffers are not under our
+        // control -- they'll be disposed before being processed by us. They
+        // have to be buffered by end-of-frame.
         void CopyThread()
         {
             while (!_terminate)
             {
-                _copyStart.WaitOne();
-                _copyMutex.WaitOne();
+                // Wait for ping from the main thread.
+                _copyPing.WaitOne();
 
+                // Process all entries in the copy queue.
                 while (!_terminate && _copyQueue.Count > 0)
                 {
+                    // Retrieve an copy queue entry without dequeuing it.
+                    // (We don't want to notify the main thread at this point.)
                     NativeArray<byte> source;
                     lock (_copyQueue) source = _copyQueue.Peek();
 
+                    // Try allocating a buffer from the free buffer list.
                     byte[] buffer = null;
                     if (_freeBuffer.Count > 0)
                         lock (_freeBuffer) buffer = _freeBuffer.Dequeue();
 
+                    // Copy the contents of the copy queue entry.
                     if (buffer == null || buffer.Length != source.Length)
                         buffer = source.ToArray();
                     else
                         source.CopyTo(buffer);
 
+                    // Push the buffer entry to the pipe queue.
                     lock (_pipeQueue) _pipeQueue.Enqueue(buffer);
-                    _pipeStart.Set();
+                    _pipePing.Set(); // Ping the pipe thread.
 
+                    // Dequeue the copy buffer entry and ping the main thread.
                     lock (_copyQueue) _copyQueue.Dequeue();
+                    _copyEnd.Set();
                 }
-
-                _copyMutex.ReleaseMutex();
             }
         }
 
+        // PipeThread - Receives frame entries from the copy thread and push
+        // them into the ffmpeg pipe.
         void PipeThread()
         {
             while (!_terminate)
             {
-                _pipeStart.WaitOne();
+                // Wait for the ping from the copy thread.
+                _pipePing.WaitOne();
 
+                // Process all entries in the pipe queue.
                 while (!_terminate && _pipeQueue.Count > 0)
                 {
+                    // Retrieve a frame entry.
                     byte[] buffer;
                     lock (_pipeQueue) buffer = _pipeQueue.Dequeue();
 
+                    // Write it into the ffmpeg pipe.
                     _subprocess.StandardInput.BaseStream.Write(buffer, 0, buffer.Length);
                     _subprocess.StandardInput.BaseStream.Flush();
 
+                    // Add the buffer to the free buffer list to reuse later.
                     lock (_freeBuffer) _freeBuffer.Enqueue(buffer);
                 }
             }
