@@ -38,17 +38,12 @@ namespace FFmpegOut
 
         #region Frame readback queue
 
-        struct Frame
-        {
-            public AsyncGPUReadbackRequest request;
-            public RenderTexture texture;
-        }
-
-        Queue<Frame> _readbackQueue = new Queue<Frame>(4);
+        List<AsyncGPUReadbackRequest> _readbackQueue =
+            new List<AsyncGPUReadbackRequest>(4);
 
         void QueueFrame(RenderTexture source)
         {
-            if (_readbackQueue.Count > 4)
+            if (_readbackQueue.Count > 6)
             {
                 Debug.LogWarning("Too many GPU readback requests.");
                 return;
@@ -61,32 +56,44 @@ namespace FFmpegOut
                 _blitMaterial = new Material(shader);
             }
 
-            // Blit to a tenporary RT.
+            // Blit to a temporary texture and request readback on it.
             var rt = RenderTexture.GetTemporary
                 (source.width, source.height, 0, RenderTextureFormat.ARGB32);
             Graphics.Blit(source, rt, _blitMaterial, 0);
-
-            // Request read-back and push it to the queue.
-            _readbackQueue.Enqueue(new Frame {
-                request = AsyncGPUReadback.Request(rt),
-                texture = rt
-            });
+            _readbackQueue.Add(AsyncGPUReadback.Request(rt));
+            RenderTexture.ReleaseTemporary(rt);
         }
 
         void ProcessQueue()
         {
             while (_readbackQueue.Count > 0)
             {
-                var req = _readbackQueue.Peek().request;
+                // Check if the first entry in the queue is completed.
+                if (!_readbackQueue[0].done)
+                {
+                    // Detect out-of-order case (the second entry in the queue
+                    // is completed before the first entry).
+                    if (_readbackQueue.Count > 1 && _readbackQueue[1].done)
+                    {
+                        // We can't allow the out-of-order case, so force it to
+                        // be completed now.
+                        _readbackQueue[0].WaitForCompletion();
+                    }
+                    else
+                    {
+                        // Nothing to do with the queue.
+                        break;
+                    }
+                }
 
-                // Break on an uncompleted readback.
-                if (!req.done) break;
+                // Retrieve the first entry in the queue.
+                var req = _readbackQueue[0];
+                _readbackQueue.RemoveAt(0);
 
-                // Skip error frames.
+                // Error detection
                 if (req.hasError)
                 {
                     Debug.LogWarning("GPU readback error was detected.");
-                    RenderTexture.ReleaseTemporary(_readbackQueue.Dequeue().texture);
                     continue;
                 }
 
@@ -99,9 +106,6 @@ namespace FFmpegOut
 
                 // Feed the frame to the ffmpeg pipe.
                 _pipe.PushFrameAsync(req.GetData<byte>());
-
-                // Done. Remove the frame from the queue.
-                RenderTexture.ReleaseTemporary(_readbackQueue.Dequeue().texture);
             }
         }
 
@@ -140,10 +144,6 @@ namespace FFmpegOut
 
                 _pipe = null;
             }
-
-            // Dispose remains in the readback queue.
-            while (_readbackQueue.Count > 0)
-                RenderTexture.ReleaseTemporary(_readbackQueue.Dequeue().texture);
         }
 
         void OnDestroy()
