@@ -49,10 +49,10 @@ namespace FFmpegOut
                 return;
             }
 
-            // Lazy initialization of the blit shader
+            // Lazy initialization of the preprocessing blit shader
             if (_blitMaterial == null)
             {
-                var shader = Shader.Find("Hidden/FFmpegOut/CameraCapture");
+                var shader = Shader.Find("Hidden/FFmpegOut/Preprocess");
                 _blitMaterial = new Material(shader);
             }
 
@@ -116,7 +116,7 @@ namespace FFmpegOut
         void OnEnable()
         {
             // Check if ffmpeg is available. Disable itself when unavailable.
-            if (!FFmpegConfig.CheckAvailable)
+            if (!FFmpegInstallation.CheckAvailable)
             {
                 Debug.LogError(
                     "ffmpeg.exe is missing. " +
@@ -142,6 +142,7 @@ namespace FFmpegOut
                         "See the following lines for details:\n" + _pipe.Error
                     );
 
+                _pipe.Dispose();
                 _pipe = null;
             }
         }

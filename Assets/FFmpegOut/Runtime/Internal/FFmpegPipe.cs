@@ -10,7 +10,7 @@ using Unity.Collections;
 
 namespace FFmpegOut
 {
-    public sealed class FFmpegPipe
+    sealed class FFmpegPipe : IDisposable
     {
         #region Public properties
 
@@ -39,7 +39,7 @@ namespace FFmpegOut
             opt += " " + Filename;
 
             // Subprocess options
-            var info = new ProcessStartInfo(FFmpegConfig.BinaryPath, opt);
+            var info = new ProcessStartInfo(FFmpegInstallation.BinaryPath, opt);
             info.UseShellExecute = false;
             info.CreateNoWindow = true;
             info.RedirectStandardInput = true;
@@ -90,6 +90,32 @@ namespace FFmpegOut
 
             outputReader.Close();
             outputReader.Dispose();
+
+            // Nullify members (just for ease of debugging).
+            _subprocess = null;
+            _copyThread = null;
+            _pipeThread = null;
+            _copyQueue = null;
+            _pipeQueue = _freeBuffer = null;
+        }
+
+        #endregion
+
+        #region IDisposable implementation
+
+        public void Dispose()
+        {
+            if (!_terminate) Close();
+        }
+
+        ~FFmpegPipe()
+        {
+            if (!_terminate)
+                UnityEngine.Debug.LogError(
+                    "An unfinalized FFmpegPipe object was detected. " +
+                    "It should be explicitly closed or disposed " +
+                    "before being garbage-collected."
+                );
         }
 
         #endregion

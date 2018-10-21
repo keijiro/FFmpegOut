@@ -1,4 +1,7 @@
-﻿Shader "Hidden/FFmpegOut/CameraCapture"
+﻿// FFmpegOut - FFmpeg video encoding plugin for Unity
+// https://github.com/keijiro/KlakNDI
+
+Shader "Hidden/FFmpegOut/Preprocess"
 {
     Properties
     {

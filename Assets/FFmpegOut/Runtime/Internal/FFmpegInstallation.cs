@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace FFmpegOut
 {
-    static class FFmpegConfig
+    static class FFmpegInstallation
     {
         public static string BinaryPath
         {
