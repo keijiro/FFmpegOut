@@ -69,7 +69,7 @@ namespace FFmpegOut
 
                 if (!string.IsNullOrEmpty(error))
                     Debug.LogWarning(
-                        "ffmpeg returned with a warning or an error message. " +
+                        "FFmpeg returned with warning/error messages. " +
                         "See the following lines for details:\n" + error
                     );
 
@@ -186,7 +186,7 @@ namespace FFmpegOut
                     continue;
                 }
 
-                // Feed the frame to the ffmpeg pipe.
+                // Feed the frame to the FFmpeg pipe.
                 _pipe.PushFrameData(req.GetData<byte>());
             }
         }

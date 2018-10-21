@@ -58,7 +58,7 @@ namespace FFmpegOut
 
         IEnumerator Start()
         {
-            // Sync with ffmpeg pipe thread at the end of every frame.
+            // Sync with FFmpeg pipe thread at the end of every frame.
             for (var eof = new WaitForEndOfFrame();;)
             {
                 yield return eof;

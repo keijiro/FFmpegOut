@@ -18,7 +18,7 @@ namespace FFmpegOut
 
         public FFmpegPipe(string arguments)
         {
-            // Start ffmpeg subprocess.
+            // Start FFmpeg subprocess.
             _subprocess = Process.Start(new ProcessStartInfo {
                 FileName = ExecutablePath,
                 Arguments = arguments,
@@ -59,7 +59,7 @@ namespace FFmpegOut
             _copyThread.Join();
             _pipeThread.Join();
 
-            // Close ffmpeg subprocess.
+            // Close FFmpeg subprocess.
             _subprocess.StandardInput.Close();
             _subprocess.WaitForExit();
 
@@ -182,7 +182,7 @@ namespace FFmpegOut
         }
 
         // PipeThread - Receives frame entries from the copy thread and push
-        // them into the ffmpeg pipe.
+        // them into the FFmpeg pipe.
         void PipeThread()
         {
             while (!_terminate)
@@ -197,7 +197,7 @@ namespace FFmpegOut
                     byte[] buffer;
                     lock (_pipeQueue) buffer = _pipeQueue.Dequeue();
 
-                    // Write it into the ffmpeg pipe.
+                    // Write it into the FFmpeg pipe.
                     _subprocess.StandardInput.BaseStream.Write(buffer, 0, buffer.Length);
                     _subprocess.StandardInput.BaseStream.Flush();
 
