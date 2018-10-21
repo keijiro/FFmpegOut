@@ -1,53 +1,33 @@
 // FFmpegOut - FFmpeg video encoding plugin for Unity
 // https://github.com/keijiro/KlakNDI
 
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Threading;
 using Unity.Collections;
 
 namespace FFmpegOut
 {
-    sealed class FFmpegPipe : IDisposable
+    sealed class FFmpegPipe : System.IDisposable
     {
-        #region Public properties
-
-        public string Filename { get; private set; }
-        public string Error { get; private set; }
-
-        #endregion
-
         #region Public methods
 
-        public FFmpegPipe(
-            string name, int width, int height, int framerate,
-            FFmpegPreset preset
-        )
+        public static bool IsAvailable {
+            get { return System.IO.File.Exists(ExecutablePath); }
+        }
+
+        public FFmpegPipe(string arguments)
         {
-            // Output file name
-            name += DateTime.Now.ToString(" yyyy MMdd HHmmss");
-            Filename = name.Replace(" ", "_") + preset.GetSuffix();
-
-            // ffmpeg command line options
-            var opt = "-y -f rawvideo -vcodec rawvideo -pixel_format rgba";
-            opt += " -colorspace bt709";
-            opt += " -video_size " + width + "x" + height;
-            opt += " -framerate " + framerate;
-            opt += " -loglevel warning -i - " + preset.GetOptions();
-            opt += " " + Filename;
-
-            // Subprocess options
-            var info = new ProcessStartInfo(FFmpegInstallation.BinaryPath, opt);
-            info.UseShellExecute = false;
-            info.CreateNoWindow = true;
-            info.RedirectStandardInput = true;
-            info.RedirectStandardOutput = true;
-            info.RedirectStandardError = true;
-
             // Start ffmpeg subprocess.
-            _subprocess = Process.Start(info);
+            _subprocess = Process.Start(new ProcessStartInfo {
+                FileName = ExecutablePath,
+                Arguments = arguments,
+                UseShellExecute = false,
+                CreateNoWindow = true,
+                RedirectStandardInput = true,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true
+            });
 
             // Start copy/pipe subthreads.
             _copyThread = new Thread(CopyThread);
@@ -56,18 +36,19 @@ namespace FFmpegOut
             _pipeThread.Start();
         }
 
-        public void PushFrameAsync(NativeArray<byte> data)
+        public void PushFrameData(NativeArray<byte> data)
         {
             lock (_copyQueue) _copyQueue.Enqueue(data);
-            _copyPing.Set();
+            _copyPing.Set(); // Ping the copy thread.
         }
 
-        public void CompletePushFrames()
+        public void SyncFrameData()
         {
-            while (_copyQueue.Count > 0) _copyEnd.WaitOne();
+            while (_copyQueue.Count > 0)
+                _copyEnd.WaitOne(); // Wait for ping from the copy thread.
         }
 
-        public void Close()
+        public string CloseAndGetOutput()
         {
             // Terminate the subthreads.
             _terminate = true;
@@ -83,7 +64,7 @@ namespace FFmpegOut
             _subprocess.WaitForExit();
 
             var outputReader = _subprocess.StandardError;
-            Error = outputReader.ReadToEnd();
+            var error = outputReader.ReadToEnd();
 
             _subprocess.Close();
             _subprocess.Dispose();
@@ -97,6 +78,8 @@ namespace FFmpegOut
             _pipeThread = null;
             _copyQueue = null;
             _pipeQueue = _freeBuffer = null;
+
+            return error;
         }
 
         #endregion
@@ -105,7 +88,7 @@ namespace FFmpegOut
 
         public void Dispose()
         {
-            if (!_terminate) Close();
+            if (!_terminate) CloseAndGetOutput();
         }
 
         ~FFmpegPipe()
@@ -134,6 +117,24 @@ namespace FFmpegOut
         Queue<NativeArray<byte>> _copyQueue = new Queue<NativeArray<byte>>();
         Queue<byte[]> _pipeQueue = new Queue<byte[]>();
         Queue<byte[]> _freeBuffer = new Queue<byte[]>();
+
+        public static string ExecutablePath
+        {
+            get {
+                var basePath = UnityEngine.Application.streamingAssetsPath;
+                var platform = UnityEngine.Application.platform;
+                
+                if (platform == UnityEngine.RuntimePlatform.OSXPlayer ||
+                    platform == UnityEngine.RuntimePlatform.OSXEditor)
+                    return basePath + "/FFmpegOut/OSX/ffmpeg";
+
+                if (platform == UnityEngine.RuntimePlatform.LinuxPlayer ||
+                    platform == UnityEngine.RuntimePlatform.LinuxEditor)
+                    return basePath + "/FFmpegOut/Linux/ffmpeg";
+
+                return basePath + "/FFmpegOut/Windows/ffmpeg.exe";
+            }
+        }
 
         #endregion
 
