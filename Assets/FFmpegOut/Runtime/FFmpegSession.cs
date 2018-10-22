@@ -52,7 +52,7 @@ namespace FFmpegOut
             if (_pipe != null)
             {
                 ProcessQueue();
-                QueueFrame(source);
+                if (source != null) QueueFrame(source);
             }
         }
 

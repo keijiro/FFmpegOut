@@ -14,6 +14,7 @@ namespace FFmpegOut
         SerializedProperty _width;
         SerializedProperty _height;
         SerializedProperty _preset;
+        SerializedProperty _frameRate;
 
         GUIContent[] _presetLabels;
         int[] _presetOptions;
@@ -35,6 +36,7 @@ namespace FFmpegOut
             _width = serializedObject.FindProperty("_width");
             _height = serializedObject.FindProperty("_height");
             _preset = serializedObject.FindProperty("_preset");
+            _frameRate = serializedObject.FindProperty("_frameRate");
 
             var presets = FFmpegPreset.GetValues(typeof(FFmpegPreset));
             _presetLabels = presets.Cast<FFmpegPreset>().
@@ -53,6 +55,7 @@ namespace FFmpegOut
             }
 
             EditorGUILayout.IntPopup(_preset, _presetLabels, _presetOptions);
+            EditorGUILayout.PropertyField(_frameRate);
 
             serializedObject.ApplyModifiedProperties();
         }

@@ -32,6 +32,13 @@ namespace FFmpegOut
             set { _preset = value; }
         }
 
+        [SerializeField] float _frameRate = 60;
+
+        public float frameRate {
+            get { return _frameRate; }
+            set { _frameRate = value; }
+        }
+
         #endregion
 
         #region Private members
@@ -43,6 +50,17 @@ namespace FFmpegOut
         RenderTextureFormat GetTargetFormat(Camera camera)
         {
             return camera.allowHDR ?  RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default;
+        }
+
+        #endregion
+
+        #region Time-keeping variables
+
+        int _frameCount;
+        float _startTime;
+
+        float FrameTime {
+            get { return _startTime + (_frameCount - 0.5f) / _frameRate; }
         }
 
         #endregion
@@ -113,12 +131,23 @@ namespace FFmpegOut
                     gameObject.name,
                     camera.targetTexture.width,
                     camera.targetTexture.height,
-                    60, preset
+                    _frameRate, preset
                 );
+
+                _startTime = Time.time;
             }
 
-            // Push the current frame to FFmpeg;
-            _session.PushFrame(camera.targetTexture);
+            if (Time.time > FrameTime)
+            {
+                // Push the current frame to FFmpeg;
+                _session.PushFrame(camera.targetTexture);
+                _frameCount++;
+            }
+            else
+            {
+                // Update without frame data.
+                _session.PushFrame(null);
+            }
         }
 
         #endregion
