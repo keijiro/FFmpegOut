@@ -12,8 +12,6 @@ Desktop.ini
 /Library
 /Logs
 /Temp
-/UnityPackageManager
-/Packages
 
 /Assets/StreamingAssets/FFmpegOut/Windows/ffmpeg.exe
 /Assets/StreamingAssets/FFmpegOut/OSX/ffmpeg
