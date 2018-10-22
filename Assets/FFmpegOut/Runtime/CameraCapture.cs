@@ -6,8 +6,8 @@ using System.Collections;
 
 namespace FFmpegOut
 {
-    [AddComponentMenu("FFmpegOut/Video Capture")]
-    public sealed class VideoCapture : MonoBehaviour
+    [AddComponentMenu("FFmpegOut/Camera Capture")]
+    public sealed class CameraCapture : MonoBehaviour
     {
         #region Public properties
 
@@ -25,13 +25,6 @@ namespace FFmpegOut
             set { _height = value; }
         }
 
-        [SerializeField] RenderTexture _sourceTexture;
-
-        public RenderTexture sourceTexture {
-            get { return _sourceTexture; }
-            set { _sourceTexture = value; }
-        }
-
         [SerializeField] FFmpegPreset _preset;
 
         public FFmpegPreset preset {
@@ -44,8 +37,13 @@ namespace FFmpegOut
         #region Private members
 
         FFmpegSession _session;
-        RenderTexture _frame;
+        RenderTexture _tempRT;
         GameObject _blitter;
+
+        RenderTextureFormat GetTargetFormat(Camera camera)
+        {
+            return camera.allowHDR ?  RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default;
+        }
 
         #endregion
 
@@ -67,12 +65,12 @@ namespace FFmpegOut
                 _session = null;
             }
 
-            if (_frame != null)
+            if (_tempRT != null)
             {
                 // Dispose the frame texture.
                 GetComponent<Camera>().targetTexture = null;
-                Destroy(_frame);
-                _frame = null;
+                Destroy(_tempRT);
+                _tempRT = null;
             }
 
             if (_blitter != null)
@@ -95,23 +93,32 @@ namespace FFmpegOut
 
         void Update()
         {
+            var camera = GetComponent<Camera>();
+
             // Lazy initialization
             if (_session == null)
             {
-                // Create and activate a frame texture.
-                _frame = new RenderTexture(_width, _height, 0);
-                GetComponent<Camera>().targetTexture = _frame;
-
-                // Create a blitter object to keep presenting frames.
-                _blitter = Blitter.CreateInstance(GetComponent<Camera>());
+                // Give a newly created temporary render texture to the camera
+                // if it's set to render to a screen. Also create a blitter
+                // object to keep frames presented on the screen.
+                if (camera.targetTexture == null)
+                {
+                    _tempRT = new RenderTexture(_width, _height, 0, GetTargetFormat(camera)); 
+                    camera.targetTexture = _tempRT;
+                    _blitter = Blitter.CreateInstance(camera);
+                }
 
                 // Start an FFmpeg session.
-                _session = FFmpegSession.Create
-                    (gameObject.name, _width, _height, 60, preset);
+                _session = FFmpegSession.Create(
+                    gameObject.name,
+                    camera.targetTexture.width,
+                    camera.targetTexture.height,
+                    60, preset
+                );
             }
 
             // Push the current frame to FFmpeg;
-            _session.PushFrame(_frame);
+            _session.PushFrame(camera.targetTexture);
         }
 
         #endregion

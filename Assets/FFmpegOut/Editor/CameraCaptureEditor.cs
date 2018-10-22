@@ -8,22 +8,32 @@ using System.Linq;
 namespace FFmpegOut
 {
     [CanEditMultipleObjects]
-    [CustomEditor(typeof(VideoCapture))]
-    public class VideoCaptureEditor : Editor
+    [CustomEditor(typeof(CameraCapture))]
+    public class CameraCaptureEditor : Editor
     {
         SerializedProperty _width;
         SerializedProperty _height;
-        SerializedProperty _sourceTexture;
         SerializedProperty _preset;
 
         GUIContent[] _presetLabels;
         int[] _presetOptions;
 
+        // It shows the render format options when:
+        // - Editing multiple objects.
+        // - No target texture is specified in the camera.
+        bool ShouldShowFormatOptions
+        {
+            get {
+                if (targets.Length > 1) return true;
+                var camera = ((Component)target).GetComponent<Camera>();
+                return camera.targetTexture == null;
+            }
+        }
+
         void OnEnable()
         {
             _width = serializedObject.FindProperty("_width");
             _height = serializedObject.FindProperty("_height");
-            _sourceTexture = serializedObject.FindProperty("_sourceTexture");
             _preset = serializedObject.FindProperty("_preset");
 
             var presets = FFmpegPreset.GetValues(typeof(FFmpegPreset));
@@ -36,9 +46,12 @@ namespace FFmpegOut
         {
             serializedObject.Update();
 
-            EditorGUILayout.PropertyField(_width);
-            EditorGUILayout.PropertyField(_height);
-            EditorGUILayout.PropertyField(_sourceTexture);
+            if (ShouldShowFormatOptions)
+            {
+                EditorGUILayout.PropertyField(_width);
+                EditorGUILayout.PropertyField(_height);
+            }
+
             EditorGUILayout.IntPopup(_preset, _presetLabels, _presetOptions);
 
             serializedObject.ApplyModifiedProperties();
