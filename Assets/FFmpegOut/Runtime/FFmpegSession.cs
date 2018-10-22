@@ -13,13 +13,13 @@ namespace FFmpegOut
 
         public static FFmpegSession Create(
             string name,
-            int width, int height, float fps,
+            int width, int height, float frameRate,
             FFmpegPreset preset
         )
         {
             name += System.DateTime.Now.ToString(" yyyy MMdd HHmmss");
             var path = name.Replace(" ", "_") + preset.GetSuffix();
-            return CreateWithOutputPath(path, width, height, fps, preset);
+            return CreateWithOutputPath(path, width, height, frameRate, preset);
         }
 
         public static FFmpegSession CreateWithOutputPath(
