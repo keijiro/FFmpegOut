@@ -11,6 +11,8 @@ namespace FFmpegOut
     [CustomEditor(typeof(VideoCapture))]
     public class VideoCaptureEditor : Editor
     {
+        SerializedProperty _width;
+        SerializedProperty _height;
         SerializedProperty _sourceTexture;
         SerializedProperty _preset;
 
@@ -19,6 +21,8 @@ namespace FFmpegOut
 
         void OnEnable()
         {
+            _width = serializedObject.FindProperty("_width");
+            _height = serializedObject.FindProperty("_height");
             _sourceTexture = serializedObject.FindProperty("_sourceTexture");
             _preset = serializedObject.FindProperty("_preset");
 
@@ -32,6 +36,8 @@ namespace FFmpegOut
         {
             serializedObject.Update();
 
+            EditorGUILayout.PropertyField(_width);
+            EditorGUILayout.PropertyField(_height);
             EditorGUILayout.PropertyField(_sourceTexture);
             EditorGUILayout.IntPopup(_preset, _presetLabels, _presetOptions);
 

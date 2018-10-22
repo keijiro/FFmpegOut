@@ -11,6 +11,20 @@ namespace FFmpegOut
     {
         #region Public properties
 
+        [SerializeField] int _width = 1920;
+
+        public int width {
+            get { return _width; }
+            set { _width = value; }
+        }
+
+        [SerializeField] int _height = 1080;
+
+        public int height {
+            get { return _height; }
+            set { _height = value; }
+        }
+
         [SerializeField] RenderTexture _sourceTexture;
 
         public RenderTexture sourceTexture {
@@ -30,29 +44,42 @@ namespace FFmpegOut
         #region Private members
 
         FFmpegSession _session;
-
-        void PushFrame(RenderTexture frame)
-        {
-            // Lazy initialization of capturing session
-            if (_session == null)
-                _session = FFmpegSession.Create(
-                    gameObject.name, frame.width, frame.height, 60, preset
-                );
-
-            _session.PushFrame(frame);
-        }
+        RenderTexture _frame;
+        GameObject _blitter;
 
         #endregion
 
         #region MonoBehaviour implementation
 
+        void OnValidate()
+        {
+            _width = Mathf.Max(8, _width);
+            _height = Mathf.Max(8, _height);
+        }
+
         void OnDisable()
         {
             if (_session != null)
             {
+                // Close and dispose the FFmpeg session.
                 _session.Close();
                 _session.Dispose();
                 _session = null;
+            }
+
+            if (_frame != null)
+            {
+                // Dispose the frame texture.
+                GetComponent<Camera>().targetTexture = null;
+                Destroy(_frame);
+                _frame = null;
+            }
+
+            if (_blitter != null)
+            {
+                // Destroy the blitter game object.
+                Destroy(_blitter);
+                _blitter = null;
             }
         }
 
@@ -68,16 +95,23 @@ namespace FFmpegOut
 
         void Update()
         {
-            // Render texture mode
-            if (GetComponent<Camera>() == null && _sourceTexture != null)
-                PushFrame(_sourceTexture);
-        }
+            // Lazy initialization
+            if (_session == null)
+            {
+                // Create and activate a frame texture.
+                _frame = new RenderTexture(_width, _height, 0);
+                GetComponent<Camera>().targetTexture = _frame;
 
-        void OnRenderImage(RenderTexture source, RenderTexture destination)
-        {
-            // Camera capture mode
-            PushFrame(source);
-            Graphics.Blit(source, destination);
+                // Create a blitter object to keep presenting frames.
+                _blitter = Blitter.CreateInstance(GetComponent<Camera>());
+
+                // Start an FFmpeg session.
+                _session = FFmpegSession.Create
+                    (gameObject.name, _width, _height, 60, preset);
+            }
+
+            // Push the current frame to FFmpeg;
+            _session.PushFrame(_frame);
         }
 
         #endregion
