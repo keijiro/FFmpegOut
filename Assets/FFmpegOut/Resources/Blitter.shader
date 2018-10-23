@@ -21,7 +21,7 @@ Shader "Hidden/FFmpegOut/Blitter"
         float x = (vid == 1) ? 1 : 0;
         float y = (vid == 2) ? 1 : 0;
         position = float4(x * 4 - 1, y * 4 - 1, 1, 1);
-        texcoord = float2(x * 2, y * 2);
+        texcoord = float2(x * 2, 1 - y * 2);
     }
 
     half4 Fragment(
