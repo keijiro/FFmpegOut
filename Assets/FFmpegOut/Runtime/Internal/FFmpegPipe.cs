@@ -152,7 +152,7 @@ namespace FFmpegOut
                 _copyPing.WaitOne();
 
                 // Process all entries in the copy queue.
-                while (!_terminate && _copyQueue.Count > 0)
+                while (_copyQueue.Count > 0)
                 {
                     // Retrieve an copy queue entry without dequeuing it.
                     // (We don't want to notify the main thread at this point.)
@@ -191,7 +191,7 @@ namespace FFmpegOut
                 _pipePing.WaitOne();
 
                 // Process all entries in the pipe queue.
-                while (!_terminate && _pipeQueue.Count > 0)
+                while (_pipeQueue.Count > 0)
                 {
                     // Retrieve a frame entry.
                     byte[] buffer;
