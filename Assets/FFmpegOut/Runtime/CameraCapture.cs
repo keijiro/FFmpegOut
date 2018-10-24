@@ -58,9 +58,21 @@ namespace FFmpegOut
 
         int _frameCount;
         float _startTime;
+        int _frameDropCount;
 
         float FrameTime {
             get { return _startTime + (_frameCount - 0.5f) / _frameRate; }
+        }
+
+        void WarnFrameDrop()
+        {
+            if (++_frameDropCount != 10) return;
+
+            Debug.LogWarning(
+                "Significant frame droppping was detected. This may introduce " +
+                "time instability into output video. Decreasing the recording " +
+                "frame rate is recommended."
+            );
         }
 
         #endregion
@@ -135,18 +147,45 @@ namespace FFmpegOut
                 );
 
                 _startTime = Time.time;
+                _frameCount = 0;
+                _frameDropCount = 0;
             }
 
-            if (Time.time > FrameTime)
-            {
-                // Push the current frame to FFmpeg;
-                _session.PushFrame(camera.targetTexture);
-                _frameCount++;
-            }
-            else
+            var gap = Time.time - FrameTime;
+            var delta = 1 / _frameRate;
+
+            if (gap < 0)
             {
                 // Update without frame data.
                 _session.PushFrame(null);
+            }
+            else if (gap < delta)
+            {
+                // Single-frame behind from the current time:
+                // Push the current frame to FFmpeg.
+                _session.PushFrame(camera.targetTexture);
+                _frameCount++;
+            }
+            else if (gap < delta * 2)
+            {
+                // Two-frame behind from the current time:
+                // Push the current frame twice to FFmpeg. Actually this is not
+                // an efficient way to catch up. We should think about
+                // implementing frame duplication in a more proper way. #fixme
+                _session.PushFrame(camera.targetTexture);
+                _session.PushFrame(camera.targetTexture);
+                _frameCount += 2;
+            }
+            else
+            {
+                // Show a warning message about the situation.
+                WarnFrameDrop();
+
+                // Push the current frame to FFmpeg.
+                _session.PushFrame(camera.targetTexture);
+
+                // Compensate the time delay.
+                _frameCount += Mathf.FloorToInt(gap * _frameRate);
             }
         }
 
