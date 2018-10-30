@@ -38,14 +38,22 @@ namespace FFmpegOut
 
         public void PushFrameData(NativeArray<byte> data)
         {
+            // Update the copy queue and notify the copy thread with a ping.
             lock (_copyQueue) _copyQueue.Enqueue(data);
-            _copyPing.Set(); // Ping the copy thread.
+            _copyPing.Set();
         }
 
         public void SyncFrameData()
         {
-            while (_copyQueue.Count > 0)
-                _copyEnd.WaitOne(); // Wait for ping from the copy thread.
+            // Wait for the copy queue to get emptied with using pong
+            // notification signals sent from the copy thread.
+            while (_copyQueue.Count > 0) _copyPong.WaitOne();
+
+            // When using a slower codec (e.g. HEVC, ProRes), frames may be
+            // queued too much, and it may end up with an out-of-memory error.
+            // To avoid this problem, we wait for pipe queue entries to be
+            // comsumed by the pipe thread.
+            while (_pipeQueue.Count > 4) _pipePong.WaitOne();
         }
 
         public string CloseAndGetOutput()
@@ -110,8 +118,9 @@ namespace FFmpegOut
         Thread _pipeThread;
 
         AutoResetEvent _copyPing = new AutoResetEvent(false);
-        AutoResetEvent _copyEnd  = new AutoResetEvent(false);
+        AutoResetEvent _copyPong = new AutoResetEvent(false);
         AutoResetEvent _pipePing = new AutoResetEvent(false);
+        AutoResetEvent _pipePong = new AutoResetEvent(false);
         bool _terminate;
 
         Queue<NativeArray<byte>> _copyQueue = new Queue<NativeArray<byte>>();
@@ -176,7 +185,7 @@ namespace FFmpegOut
 
                     // Dequeue the copy buffer entry and ping the main thread.
                     lock (_copyQueue) _copyQueue.Dequeue();
-                    _copyEnd.Set();
+                    _copyPong.Set();
                 }
             }
         }
@@ -203,6 +212,7 @@ namespace FFmpegOut
 
                     // Add the buffer to the free buffer list to reuse later.
                     lock (_freeBuffer) _freeBuffer.Enqueue(buffer);
+                    _pipePong.Set();
                 }
             }
         }
