@@ -6,9 +6,11 @@ namespace FFmpegOut
     public enum FFmpegPreset
     {
         H264Default,
+        H264Nvidia,
         H264Lossless420,
         H264Lossless444,
         H265Default,
+        H265Nvidia,
         ProRes422,
         ProRes4444,
         VP8Default,
@@ -22,9 +24,11 @@ namespace FFmpegOut
             switch (preset)
             {
                 case FFmpegPreset.H264Default:     return "H.264 Default (MP4)";
+                case FFmpegPreset.H264Nvidia:      return "H.264 NVIDIA (MP4)";
                 case FFmpegPreset.H264Lossless420: return "H.264 Lossless 420 (MP4)";
                 case FFmpegPreset.H264Lossless444: return "H.264 Lossless 444 (MP4)";
                 case FFmpegPreset.H265Default:     return "H.265 Default (MP4)";
+                case FFmpegPreset.H265Nvidia:      return "H.265 NVIDIA (MP4)";
                 case FFmpegPreset.ProRes422:       return "ProRes 422 (QuickTime)";
                 case FFmpegPreset.ProRes4444:      return "ProRes 4444 (QuickTime)";
                 case FFmpegPreset.VP8Default:      return "VP8 (WebM)";
@@ -38,9 +42,11 @@ namespace FFmpegOut
             switch (preset)
             {
                 case FFmpegPreset.H264Default:
+                case FFmpegPreset.H264Nvidia:
                 case FFmpegPreset.H264Lossless420:
                 case FFmpegPreset.H264Lossless444:
-                case FFmpegPreset.H265Default:     return ".mp4";
+                case FFmpegPreset.H265Default:
+                case FFmpegPreset.H265Nvidia:      return ".mp4";
                 case FFmpegPreset.ProRes422:
                 case FFmpegPreset.ProRes4444:      return ".mov";
                 case FFmpegPreset.VP9Default:
@@ -54,9 +60,11 @@ namespace FFmpegOut
             switch (preset)
             {
                 case FFmpegPreset.H264Default:     return "-pix_fmt yuv420p";
+                case FFmpegPreset.H264Nvidia:      return "-c:v h264_nvenc -pix_fmt yuv420p";
                 case FFmpegPreset.H264Lossless420: return "-pix_fmt yuv420p -preset ultrafast -crf 0";
                 case FFmpegPreset.H264Lossless444: return "-pix_fmt yuv444p -preset ultrafast -crf 0";
                 case FFmpegPreset.H265Default:     return "-c:v libx265 -pix_fmt yuv420p";
+                case FFmpegPreset.H265Nvidia:      return "-c:v hevc_nvenc -pix_fmt yuv420p";
                 case FFmpegPreset.ProRes422:       return "-c:v prores_ks -pix_fmt yuv422p10le";
                 case FFmpegPreset.ProRes4444:      return "-c:v prores_ks -pix_fmt yuva444p10le";
                 case FFmpegPreset.VP8Default:      return "-c:v libvpx -pix_fmt yuv420p";
