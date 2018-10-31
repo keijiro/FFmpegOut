@@ -194,6 +194,8 @@ namespace FFmpegOut
         // them into the FFmpeg pipe.
         void PipeThread()
         {
+            var pipe = _subprocess.StandardInput.BaseStream;
+
             while (!_terminate)
             {
                 // Wait for the ping from the copy thread.
@@ -207,8 +209,18 @@ namespace FFmpegOut
                     lock (_pipeQueue) buffer = _pipeQueue.Dequeue();
 
                     // Write it into the FFmpeg pipe.
-                    _subprocess.StandardInput.BaseStream.Write(buffer, 0, buffer.Length);
-                    _subprocess.StandardInput.BaseStream.Flush();
+                    try
+                    {
+                        pipe.Write(buffer, 0, buffer.Length);
+                        pipe.Flush();
+                    }
+                    catch
+                    {
+                        // Pipe.Write could raise an IO exception when ffmpeg
+                        // is terminated for some reason. We just ignore this
+                        // situation and assume that it will be resolved in the
+                        // main thread. #badcode
+                    }
 
                     // Add the buffer to the free buffer list to reuse later.
                     lock (_freeBuffer) _freeBuffer.Enqueue(buffer);
