@@ -49,7 +49,12 @@ namespace FFmpegOut
 
         RenderTextureFormat GetTargetFormat(Camera camera)
         {
-            return camera.allowHDR ?  RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default;
+            return camera.allowHDR ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default;
+        }
+
+        int GetAntiAliasingLevel(Camera camera)
+        {
+            return camera.allowMSAA ? QualitySettings.antiAliasing : 1;
         }
 
         #endregion
@@ -133,7 +138,8 @@ namespace FFmpegOut
                 // object to keep frames presented on the screen.
                 if (camera.targetTexture == null)
                 {
-                    _tempRT = new RenderTexture(_width, _height, 0, GetTargetFormat(camera)); 
+                    _tempRT = new RenderTexture(_width, _height, 24, GetTargetFormat(camera)); 
+                    _tempRT.antiAliasing = GetAntiAliasingLevel(camera);
                     camera.targetTexture = _tempRT;
                     _blitter = Blitter.CreateInstance(camera);
                 }
