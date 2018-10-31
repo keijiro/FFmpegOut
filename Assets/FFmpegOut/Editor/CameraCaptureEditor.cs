@@ -1,5 +1,9 @@
+// FFmpegOut - FFmpeg video encoding plugin for Unity
+// https://github.com/keijiro/KlakNDI
+
 using UnityEngine;
 using UnityEditor;
+using System.Linq;
 
 namespace FFmpegOut
 {
@@ -7,58 +11,51 @@ namespace FFmpegOut
     [CustomEditor(typeof(CameraCapture))]
     public class CameraCaptureEditor : Editor
     {
-        SerializedProperty _setResolution;
         SerializedProperty _width;
         SerializedProperty _height;
-        SerializedProperty _frameRate;
-        SerializedProperty _allowSlowDown;
         SerializedProperty _preset;
-        SerializedProperty _startTime;
-        SerializedProperty _recordLength;
+        SerializedProperty _frameRate;
 
-        static GUIContent [] _presetLabels = {
-            new GUIContent("H.264 Default (MP4)"),
-            new GUIContent("H.264 Lossless 420 (MP4)"),
-            new GUIContent("H.264 Lossless 444 (MP4)"),
-            new GUIContent("ProRes 422 (QuickTime)"),
-            new GUIContent("ProRes 4444 (QuickTime)"),
-            new GUIContent("VP8 (WebM)")
-        };
+        GUIContent[] _presetLabels;
+        int[] _presetOptions;
 
-        static int [] _presetOptions = { 0, 1, 2, 3, 4, 5 };
+        // It shows the render format options when:
+        // - Editing multiple objects.
+        // - No target texture is specified in the camera.
+        bool ShouldShowFormatOptions
+        {
+            get {
+                if (targets.Length > 1) return true;
+                var camera = ((Component)target).GetComponent<Camera>();
+                return camera.targetTexture == null;
+            }
+        }
 
         void OnEnable()
         {
-            _setResolution = serializedObject.FindProperty("_setResolution");
             _width = serializedObject.FindProperty("_width");
             _height = serializedObject.FindProperty("_height");
-            _frameRate = serializedObject.FindProperty("_frameRate");
-            _allowSlowDown = serializedObject.FindProperty("_allowSlowDown");
             _preset = serializedObject.FindProperty("_preset");
-            _startTime = serializedObject.FindProperty("_startTime");
-            _recordLength = serializedObject.FindProperty("_recordLength");
+            _frameRate = serializedObject.FindProperty("_frameRate");
+
+            var presets = FFmpegPreset.GetValues(typeof(FFmpegPreset));
+            _presetLabels = presets.Cast<FFmpegPreset>().
+                Select(p => new GUIContent(p.GetDisplayName())).ToArray();
+            _presetOptions = presets.Cast<int>().ToArray();
         }
 
         public override void OnInspectorGUI()
         {
-            // Show the editor controls.
             serializedObject.Update();
 
-            EditorGUILayout.PropertyField(_setResolution);
-
-            if (_setResolution.hasMultipleDifferentValues || _setResolution.boolValue)
+            if (ShouldShowFormatOptions)
             {
-                EditorGUI.indentLevel++;
                 EditorGUILayout.PropertyField(_width);
                 EditorGUILayout.PropertyField(_height);
-                EditorGUI.indentLevel--;
             }
 
-            EditorGUILayout.PropertyField(_frameRate);
-            EditorGUILayout.PropertyField(_allowSlowDown);
             EditorGUILayout.IntPopup(_preset, _presetLabels, _presetOptions);
-            EditorGUILayout.PropertyField(_startTime);
-            EditorGUILayout.PropertyField(_recordLength);
+            EditorGUILayout.PropertyField(_frameRate);
 
             serializedObject.ApplyModifiedProperties();
         }

@@ -7,8 +7,9 @@ public class PackageTool
     static void UpdatePackage()
     {
         AssetDatabase.ExportPackage(
-            new [] { "Assets/FFmpegOut", "Assets/StreamingAssets" },
-            "FFmpegOut.unitypackage", ExportPackageOptions.Recurse
+            "Assets/FFmpegOut",
+            "FFmpegOut.unitypackage",
+            ExportPackageOptions.Recurse
         );
     }
 }
