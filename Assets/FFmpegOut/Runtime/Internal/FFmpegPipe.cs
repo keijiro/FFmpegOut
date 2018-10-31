@@ -135,7 +135,7 @@ namespace FFmpegOut
                 
                 if (platform == UnityEngine.RuntimePlatform.OSXPlayer ||
                     platform == UnityEngine.RuntimePlatform.OSXEditor)
-                    return basePath + "/FFmpegOut/OSX/ffmpeg";
+                    return basePath + "/FFmpegOut/macOS/ffmpeg";
 
                 if (platform == UnityEngine.RuntimePlatform.LinuxPlayer ||
                     platform == UnityEngine.RuntimePlatform.LinuxEditor)

@@ -14,7 +14,7 @@ Desktop.ini
 /Temp
 
 /Assets/StreamingAssets/FFmpegOut/Windows/ffmpeg.exe
-/Assets/StreamingAssets/FFmpegOut/OSX/ffmpeg
+/Assets/StreamingAssets/FFmpegOut/macOS/ffmpeg
 /Assets/StreamingAssets/FFmpegOut/Linux/ffmpeg
 
 /*.mov
