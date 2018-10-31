@@ -51,7 +51,7 @@ Installation
 Download and import the following packages into your project.
 
 - [FFmpegOut package] (MIT license)
-- [FFmpegOutBinaries package] (GPL/LGPL)
+- [FFmpegOutBinaries package] (GPL)
 
 [FFmpegOut package]: https://github.com/keijiro/FFmpegOut/releases
 [FFmpegOutBinaries package]:
