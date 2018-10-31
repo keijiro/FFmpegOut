@@ -90,6 +90,9 @@ At the moment the following presets are available for use.
 | ProRes 4444        | QuickTime | **Supports alpha channel.**             |
 | VP8                | WebM      |                                         |
 | VP9                | WebM      | High quality but slow.                  |
+| HAP                | QuickTime |                                         |
+| HAP Alpha          | QuickTime | Supports alpha channel                  |
+| HAP Q              | QuickTime |                                         |
 
 ### Frame Rate
 
