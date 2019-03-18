@@ -3,7 +3,7 @@ FFmpegOut
 
 ![gif](http://i.imgur.com/bkQlFxX.gif)
 
-**FFmpegOut** is a Unity plugin that allows Unity editor and application to
+**FFmpegOut** is a Unity plugin that allows the Unity editor and applications to
 record video using [FFmpeg] as a video encoder.
 
 [FFmpeg]: https://ffmpeg.org/
@@ -12,7 +12,7 @@ Differences between Unity Recorder
 ----------------------------------
 
 First of all, note that **[Unity Recorder] would be a better choice in most
-cases for the same purpose**. It's strongly recommended to check and try out
+cases for the same purpose**. It's strongly recommended to check and try it out
 before installing FFmpegOut.
 
 ### Unity Recorder
@@ -65,13 +65,13 @@ rendered by an attached camera.
 
 ![inspector](https://i.imgur.com/M4fxPov.png)
 
-It has a few properties of recorded video: frame dimensions, preset and frame
+It has a few properties for recording video: frame dimensions, preset and frame
 rate.
 
 ### Frame Dimensions (width and height)
 
 The dimensions of recorded video are specified with the **Width** and
-**Height** property. The size of the screen or the game view will be overridden
+**Height** properties. The size of the screen or the game view will be overridden
 by these values.
 
 ### Presets
@@ -112,12 +112,12 @@ application frame rate.
 
 It tries controlling frame rate via [Application.targetFrameRate] and
 [QualitySettings.vSyncCount]. Note that it only works in a best-effort fashion.
-Although it's expected to provide a better result, not guaranteed to work
+Although it's expected to provide a better result, it's not guaranteed to work
 exactly as specified.
 
 When the **Offline Mode** property is enabled, it explicitly controls the
 application frame rate via [Time.captureFramerate]. In this mode, application
-time is decoupled from wall-clock time, so that it's guaranteed that no frame
+time is decoupled from wall-clock time so it's guaranteed that no frame
 dropping happens. This is useful when using the capture component to output
 pre-render footage.
 
