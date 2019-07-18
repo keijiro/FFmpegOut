@@ -146,8 +146,8 @@ MonoBehaviour:
   _height: 768
   _preset: 0
   _frameRate: 25
-  _preset: 0
-  _streamAddress: 
+  _streamPreset: 1
+  _streamAddress: rtp://127.0.0.1:10755
 --- !u!20 &179020922
 Camera:
   m_ObjectHideFlags: 0
