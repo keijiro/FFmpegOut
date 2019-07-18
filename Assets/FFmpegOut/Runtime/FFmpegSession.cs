@@ -7,7 +7,7 @@ using System.Collections.Generic;
 
 namespace FFmpegOut
 {
-    public sealed class FFmpegSession : System.IDisposable
+    public class FFmpegSession : System.IDisposable
     {
         #region Factory methods
 
@@ -96,7 +96,7 @@ namespace FFmpegOut
         FFmpegPipe _pipe;
         Material _blitMaterial;
 
-        FFmpegSession(string arguments)
+        protected FFmpegSession(string arguments)
         {
             if (!FFmpegPipe.IsAvailable)
                 Debug.LogWarning(
