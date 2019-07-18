@@ -94,6 +94,20 @@ At the moment the following presets are available for use.
 | HAP Alpha          | QuickTime | Supports alpha channel                  |
 | HAP Q              | QuickTime |                                         |
 
+Stream Camera Capture component
+-------------------------------
+
+The **Stream Camera Capture component** (`StreamCameraCapture`) is used to capture frames
+and send them via the selected streaming protocol to the given address. The same presets 
+as for the **Camera Capture component** (`CameraCapture`) are available.
+
+When e.g. starting the the **Time** scene as is, one can use e.g. **ffplay** to display 
+the live stream by calling "`.\ffplay.exe -fflags nobuffer rtp://127.0.0.1:10755`".
+
+Note that for the protocols `RTSP`, `RTMP`, `HLS` and `HLS_segment` a server is required 
+to handle the sent traffic and its further distribution on the network. `UDP` and 
+`RTP` allow peer-to-peer connections and no server is necessary.
+
 ### Frame Rate
 
 The **Frame Rate** property controls the sampling frequency of the capture
