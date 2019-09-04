@@ -8,7 +8,7 @@ using Unity.Collections;
 
 namespace FFmpegOut
 {
-    sealed class FFmpegPipe : System.IDisposable
+    public sealed class FFmpegPipe : System.IDisposable
     {
         #region Public methods
 
