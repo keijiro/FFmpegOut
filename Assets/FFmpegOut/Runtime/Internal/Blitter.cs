@@ -39,7 +39,7 @@ namespace FFmpegOut
         Mesh _mesh;
         Material _material;
 
-        void OnBeginCameraRendering(Camera camera)
+        void PreCull(Camera camera)
         {
             if (_mesh == null || camera != GetComponent<Camera>()) return;
 
@@ -47,6 +47,11 @@ namespace FFmpegOut
                 _mesh, transform.localToWorldMatrix,
                 _material, UILayer, camera
             );
+        }
+
+        void BeginCameraRendering(ScriptableRenderContext context, Camera camera)
+        {
+            PreCull(camera);
         }
 
         #endregion
@@ -70,9 +75,12 @@ namespace FFmpegOut
                 _material.SetTexture("_MainTex", _sourceTexture);
 
                 // Register the camera render callback.
-                UnityEngine.Experimental.Rendering.RenderPipeline.
-                    beginCameraRendering += OnBeginCameraRendering; // SRP
-                Camera.onPreCull += OnBeginCameraRendering; // Legacy
+#if UNITY_2019_2_OR_NEWER
+                RenderPipelineManager.beginCameraRendering += BeginCameraRendering; // SRP
+#else
+                UnityEngine.Experimental.Rendering.RenderPipeline.beginCameraRendering += PreCull; // SRP
+#endif
+                Camera.onPreCull += PreCull; // Legacy
             }
         }
 
@@ -81,9 +89,12 @@ namespace FFmpegOut
             if (_mesh != null)
             {
                 // Unregister the camera render callback.
-                UnityEngine.Experimental.Rendering.RenderPipeline.
-                    beginCameraRendering -= OnBeginCameraRendering; // SRP
-                Camera.onPreCull -= OnBeginCameraRendering; // Legacy
+#if UNITY_2019_2_OR_NEWER
+                RenderPipelineManager.beginCameraRendering -= BeginCameraRendering; // SRP
+#else
+                UnityEngine.Experimental.Rendering.RenderPipeline.beginCameraRendering -= PreCull; // SRP
+#endif
+                Camera.onPreCull -= PreCull; // Legacy
 
                 // Destroy temporary objects.
                 Destroy(_mesh);
