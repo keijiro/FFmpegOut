@@ -49,10 +49,12 @@ namespace FFmpegOut
             );
         }
 
+#if UNITY_2019_2_OR_NEWER
         void BeginCameraRendering(ScriptableRenderContext context, Camera camera)
         {
             PreCull(camera);
         }
+#endif
 
         #endregion
 
