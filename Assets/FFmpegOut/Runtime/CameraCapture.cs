@@ -7,7 +7,7 @@ using System.Collections;
 namespace FFmpegOut
 {
     [AddComponentMenu("FFmpegOut/Camera Capture")]
-    public sealed class CameraCapture : MonoBehaviour
+    public class CameraCapture : MonoBehaviour
     {
         #region Public properties
 
@@ -57,6 +57,20 @@ namespace FFmpegOut
             return camera.allowMSAA ? QualitySettings.antiAliasing : 1;
         }
 
+        #endregion
+        
+        #region Public members
+        
+        protected virtual FFmpegSession GetSession( int texWidth, int texHeight )
+        {
+            return FFmpegSession.Create(
+                gameObject.name,
+                texWidth,
+                texHeight,
+                _frameRate, _preset
+            );
+        }
+        
         #endregion
 
         #region Time-keeping variables
@@ -145,11 +159,9 @@ namespace FFmpegOut
                 }
 
                 // Start an FFmpeg session.
-                _session = FFmpegSession.Create(
-                    gameObject.name,
+                _session = GetSession(
                     camera.targetTexture.width,
-                    camera.targetTexture.height,
-                    _frameRate, preset
+                    camera.targetTexture.height
                 );
 
                 _startTime = Time.time;
