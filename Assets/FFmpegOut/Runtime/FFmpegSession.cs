@@ -149,7 +149,11 @@ namespace FFmpegOut
             var rt = RenderTexture.GetTemporary
                 (source.width, source.height, 0, RenderTextureFormat.ARGB32);
             Graphics.Blit(source, rt, _blitMaterial, 0);
-            _readbackQueue.Add(AsyncGPUReadback.Request(rt));
+
+            var platform = UnityEngine.Application.platform;
+            if (platform == UnityEngine.RuntimePlatform.OSXPlayer || platform == UnityEngine.RuntimePlatform.LinuxPlayer) _readbackQueue.Add(AsyncGPUReadback.Request(rt, 0, TextureFormat.ARGB32));
+            else _readbackQueue.Add(AsyncGPUReadback.Request(rt));
+
             RenderTexture.ReleaseTemporary(rt);
         }
 
