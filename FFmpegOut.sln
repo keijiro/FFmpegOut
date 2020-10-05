@@ -1,0 +1,32 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FFmpegOut", "FFmpegOut.csproj", "{cbfb9c7c-a586-be35-7f9a-998273e79ed7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Assembly-CSharp-Editor", "Assembly-CSharp-Editor.csproj", "{b31950d9-369b-9bd6-2ace-5b71b59395f8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FFmpegOut.Editor", "FFmpegOut.Editor.csproj", "{e2534803-e1ba-47ef-ecbd-fad2dd59a903}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{cbfb9c7c-a586-be35-7f9a-998273e79ed7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{cbfb9c7c-a586-be35-7f9a-998273e79ed7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{cbfb9c7c-a586-be35-7f9a-998273e79ed7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{cbfb9c7c-a586-be35-7f9a-998273e79ed7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{b31950d9-369b-9bd6-2ace-5b71b59395f8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{b31950d9-369b-9bd6-2ace-5b71b59395f8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{b31950d9-369b-9bd6-2ace-5b71b59395f8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{b31950d9-369b-9bd6-2ace-5b71b59395f8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{e2534803-e1ba-47ef-ecbd-fad2dd59a903}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{e2534803-e1ba-47ef-ecbd-fad2dd59a903}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{e2534803-e1ba-47ef-ecbd-fad2dd59a903}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{e2534803-e1ba-47ef-ecbd-fad2dd59a903}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

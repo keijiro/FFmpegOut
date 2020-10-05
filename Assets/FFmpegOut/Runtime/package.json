@@ -1,0 +1,9 @@
+{
+    "name": "com.keijiro.ffmpegout",
+    "displayName": "FFmpegOut",
+    "version": "1.0.5",
+    "unity": "2020.1",
+    "description": "FFmpegOut for Unity",
+    "license": "MIT",
+    "dependencies": {}
+}
